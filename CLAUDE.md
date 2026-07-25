@@ -2,10 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status
+## Vault
 
-This repository is currently empty — no source code, configuration, or documentation exists yet. This is not a git repository.
+All project knowledge beyond this file lives in [`vault/`](vault/):
 
-When code is added to this project, update this file with:
-- Build, lint, and test commands (including how to run a single test)
-- High-level architecture and structure notes
+- `vault/architecture.md` — high-level architecture and structure notes
+- `vault/specs/` — specs and feature docs (one file per spec/feature)
+- `vault/quality.md` — build, lint, and test commands (including how to run a single test)
+
+Check the vault before starting work, and keep it updated as the project evolves.

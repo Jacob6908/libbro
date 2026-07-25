@@ -4,6 +4,10 @@
 # Editors
 .vscode/
 .idea/
+vault/.obsidian/
+
+# Claude Code local settings (per-user/machine, not shared project config)
+.claude/settings.local.json
 
 # Env
 .env

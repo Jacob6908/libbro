@@ -4,10 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Vault
 
-All project knowledge beyond this file lives in [`vault/`](vault/):
+All project knowledge beyond this file lives in [`vault/`](vault/), an
+Obsidian-compatible knowledge base. Start here:
 
-- `vault/architecture.md` — high-level architecture and structure notes
-- `vault/specs/` — specs and feature docs (one file per spec/feature)
-- `vault/quality.md` — build, lint, and test commands (including how to run a single test)
+@vault/index.md
 
-Check the vault before starting work, and keep it updated as the project evolves.
+## Operating principles
+
+1. Read `vault/index.md` before non-trivial work.
+2. Open only the vault documents relevant to the current task.
+3. Inspect the actual implementation before assuming documentation is current.
+4. Surface conflicts between code, tests, specs, and architecture — don't silently resolve them.
+5. Don't silently change product requirements or architecture decisions.
+6. Use the smallest coherent implementation change; avoid unrelated refactoring.
+7. Run the relevant commands from `vault/quality.md`.
+8. Don't claim a check passed unless it was actually run.
+9. Update documentation only when durable project knowledge changes.
+10. Keep temporary investigation notes in `vault/working/`.
+11. Never store secrets in project documentation.
+12. Never discard uncommitted user work.
+13. Ask for explicit approval before destructive, production-sensitive, or major architectural changes.
+
+Run `/vault-audit` after notable changes (new feature, architecture decision, dependency, or spec) to keep the vault reconciled with the codebase.

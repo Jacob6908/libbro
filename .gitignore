@@ -1,3 +1,11 @@
+# Build
+node_modules
+dist
+dist-ssr
+*.local
+logs
+*.log
+
 # OS
 .DS_Store
 

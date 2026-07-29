@@ -7,6 +7,9 @@ import {
   setGenrePreference,
 } from "../services/supabase/genrePreferences";
 
+/** Every explicit selection writes this weight; recommendations scoring still multiplies it by 2. */
+const EXPLICIT_WEIGHT = 2;
+
 export function useGenrePreferences() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -24,16 +27,26 @@ export function useGenrePreferences() {
     enabled: !!user,
   });
 
-  const setMutation = useMutation({
-    mutationFn: (vars: { genreId: number; weight: number }) =>
-      setGenrePreference(user!.id, vars.genreId, vars.weight),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: preferencesKey });
-    },
-  });
+  const selectedGenreIds = new Set(
+    (preferencesQuery.data ?? []).map((preference) => preference.genre_id)
+  );
 
-  const removeMutation = useMutation({
-    mutationFn: (genreId: number) => removeGenrePreference(user!.id, genreId),
+  const saveSelectionMutation = useMutation({
+    mutationFn: async (nextSelectedIds: Set<number>) => {
+      const userId = user!.id;
+      const toAdd = [...nextSelectedIds].filter(
+        (id) => !selectedGenreIds.has(id)
+      );
+      const toRemove = [...selectedGenreIds].filter(
+        (id) => !nextSelectedIds.has(id)
+      );
+      await Promise.all([
+        ...toAdd.map((genreId) =>
+          setGenrePreference(userId, genreId, EXPLICIT_WEIGHT)
+        ),
+        ...toRemove.map((genreId) => removeGenrePreference(userId, genreId)),
+      ]);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: preferencesKey });
     },
@@ -41,10 +54,9 @@ export function useGenrePreferences() {
 
   return {
     genres: genresQuery.data ?? [],
-    preferences: preferencesQuery.data ?? [],
+    selectedGenreIds,
     isLoading: genresQuery.isLoading || preferencesQuery.isLoading,
-    setWeight: setMutation.mutate,
-    remove: removeMutation.mutate,
-    isMutating: setMutation.isPending || removeMutation.isPending,
+    saveSelection: saveSelectionMutation.mutateAsync,
+    isSaving: saveSelectionMutation.isPending,
   };
 }

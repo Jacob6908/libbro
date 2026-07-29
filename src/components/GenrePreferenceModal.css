@@ -1,0 +1,80 @@
+.genre-stage {
+  height: 320px;
+  overflow: hidden;
+}
+
+.word-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  justify-content: center;
+  align-content: center;
+  max-width: 480px;
+  animation: genre-sway 11s ease-in-out infinite;
+}
+
+@keyframes genre-sway {
+  0%,
+  100% {
+    transform: rotate(-0.3deg) translateY(0);
+  }
+  50% {
+    transform: rotate(0.3deg) translateY(-2px);
+  }
+}
+
+.word-bob {
+  display: inline-block;
+  animation: genre-bob var(--dur) ease-in-out var(--delay) infinite;
+}
+
+@keyframes genre-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.word-btn {
+  position: relative;
+  border: none;
+  background: transparent;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  padding: 4px 5px;
+  color: #201c14;
+  cursor: pointer;
+  transition: color 0.22s ease 0.05s;
+}
+.word-btn:hover:not(.selected) {
+  color: #a9791c;
+}
+.word-btn .mark {
+  position: absolute;
+  left: 1px;
+  right: 100%;
+  top: 14%;
+  bottom: 10%;
+  background: var(--dot);
+  border-radius: 3px 8px 8px 3px;
+  transition: right 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
+}
+.word-btn.selected {
+  color: #fff;
+}
+.word-btn.selected .mark {
+  right: -1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word-flow,
+  .word-bob {
+    animation: none !important;
+  }
+}

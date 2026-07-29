@@ -1,63 +1,68 @@
+import { useMemo, useState } from "react";
 import { useGenrePreferences } from "../hooks/useGenrePreferences";
-
-const WEIGHT_LABELS: Record<number, string> = {
-  1: "Meh",
-  2: "Like",
-  3: "Love",
-};
+import GenrePreferenceModal from "./GenrePreferenceModal";
+import { buildGenreColorMap } from "../lib/genreColors";
 
 export default function GenrePreferencePicker() {
-  const { genres, preferences, isLoading, setWeight, remove, isMutating } =
+  const { genres, selectedGenreIds, isLoading, saveSelection, isSaving } =
     useGenrePreferences();
+  const [isEditing, setIsEditing] = useState(false);
+  const colorByGenreId = useMemo(() => buildGenreColorMap(genres), [genres]);
 
   if (isLoading) {
     return <p className="text-sm text-gray-500">Loading genres...</p>;
   }
 
-  const weightByGenreId = new Map(
-    preferences.map((p) => [p.genre_id, p.weight])
+  const selectedGenres = genres.filter((genre) =>
+    selectedGenreIds.has(genre.id)
   );
 
+  const handleSave = async (nextSelectedIds: Set<number>) => {
+    await saveSelection(nextSelectedIds);
+    setIsEditing(false);
+  };
+
   return (
-    <section className="flex flex-col gap-2 rounded border p-4">
-      <h2 className="font-medium">Genre preferences</h2>
+    <section className="flex flex-col gap-3 rounded border p-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-medium">Genre preferences</h2>
+        <button
+          type="button"
+          onClick={() => setIsEditing(true)}
+          className="rounded border px-3 py-1.5 text-sm"
+        >
+          Edit genres
+        </button>
+      </div>
       <p className="text-sm text-gray-600">
         Tell us what you like - this shapes your recommendations.
       </p>
-      <div className="flex flex-col divide-y">
-        {genres.map((genre) => {
-          const currentWeight = weightByGenreId.get(genre.id) ?? null;
-          return (
-            <div
+
+      <div className="flex flex-wrap gap-2">
+        {selectedGenres.length === 0 ? (
+          <p className="text-sm text-gray-500">No genres selected yet.</p>
+        ) : (
+          selectedGenres.map((genre) => (
+            <span
               key={genre.id}
-              className="flex items-center justify-between py-2"
+              className="rounded-full px-3 py-1 text-xs font-medium text-white"
+              style={{ background: colorByGenreId.get(genre.id) }}
             >
-              <span className="text-sm">{genre.name}</span>
-              <div className="flex gap-1">
-                {[1, 2, 3].map((weight) => (
-                  <button
-                    key={weight}
-                    type="button"
-                    disabled={isMutating}
-                    onClick={() =>
-                      currentWeight === weight
-                        ? remove(genre.id)
-                        : setWeight({ genreId: genre.id, weight })
-                    }
-                    className={`rounded border px-2 py-1 text-xs disabled:opacity-50 ${
-                      currentWeight === weight
-                        ? "border-black bg-black text-white"
-                        : "border-gray-300 text-gray-600"
-                    }`}
-                  >
-                    {WEIGHT_LABELS[weight]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+              {genre.name}
+            </span>
+          ))
+        )}
       </div>
+
+      {isEditing && (
+        <GenrePreferenceModal
+          genres={genres}
+          initiallySelectedIds={selectedGenreIds}
+          onSave={handleSave}
+          onCancel={() => setIsEditing(false)}
+          isSaving={isSaving}
+        />
+      )}
     </section>
   );
 }

@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "./useAuth";
-import { getProfile, updateProfile } from "../services/supabase/profiles";
+import {
+  getProfile,
+  updateProfile,
+  uploadAvatar,
+} from "../services/supabase/profiles";
 import type { ProfilePatch } from "../services/supabase/profiles";
 
 export function useProfile() {
@@ -21,11 +25,21 @@ export function useProfile() {
     },
   });
 
+  const avatarMutation = useMutation({
+    mutationFn: (file: File) => uploadAvatar(user!.id, file),
+    onSuccess: (profile) => {
+      queryClient.setQueryData(queryKey, profile);
+    },
+  });
+
   return {
     profile: profileQuery.data ?? null,
     isLoading: profileQuery.isLoading,
     save: saveMutation.mutate,
     isSaving: saveMutation.isPending,
     error: saveMutation.error,
+    uploadAvatar: avatarMutation.mutate,
+    isUploadingAvatar: avatarMutation.isPending,
+    avatarError: avatarMutation.error,
   };
 }

@@ -3,8 +3,17 @@ import type { ChangeEvent } from "react";
 import { useProfile } from "../hooks/useProfile";
 import GenrePreferencePicker from "../components/GenrePreferencePicker";
 import AvatarImage from "../components/AvatarImage";
+import AvatarCropModal from "../components/AvatarCropModal";
 import type { Profile as ProfileRow } from "../types/database.types";
 import type { ProfilePatch } from "../services/supabase/profiles";
+
+const ACCEPTED_AVATAR_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
+const MAX_SOURCE_IMAGE_BYTES = 20 * 1024 * 1024;
 
 export default function Profile() {
   const {
@@ -55,12 +64,39 @@ function AvatarUploader({
   error: unknown;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [pendingImageSrc, setPendingImageSrc] = useState<string | null>(null);
+  const [selectError, setSelectError] = useState<string | null>(null);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) onUpload(file);
     event.target.value = "";
+    if (!file) return;
+
+    if (!ACCEPTED_AVATAR_TYPES.includes(file.type)) {
+      setSelectError("Please choose a JPEG, PNG, WebP, or GIF image.");
+      return;
+    }
+    if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+      setSelectError("Image must be under 20MB.");
+      return;
+    }
+
+    setSelectError(null);
+    setPendingImageSrc(URL.createObjectURL(file));
   };
+
+  const closeCropModal = () => {
+    if (pendingImageSrc) URL.revokeObjectURL(pendingImageSrc);
+    setPendingImageSrc(null);
+  };
+
+  const handleCropConfirm = (file: File) => {
+    onUpload(file);
+    closeCropModal();
+  };
+
+  const displayedError =
+    selectError ?? (error instanceof Error ? error.message : null);
 
   return (
     <section className="flex items-center gap-4 rounded border p-4">
@@ -82,12 +118,19 @@ function AvatarUploader({
           className="hidden"
         />
         <p className="text-xs text-gray-500">
-          JPEG, PNG, WebP, or GIF, up to 5MB.
+          JPEG, PNG, WebP, or GIF - you&apos;ll be able to crop it next.
         </p>
-        {error instanceof Error && (
-          <p className="text-sm text-red-600">{error.message}</p>
+        {displayedError && (
+          <p className="text-sm text-red-600">{displayedError}</p>
         )}
       </div>
+      {pendingImageSrc && (
+        <AvatarCropModal
+          imageSrc={pendingImageSrc}
+          onCancel={closeCropModal}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </section>
   );
 }

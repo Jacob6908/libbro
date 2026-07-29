@@ -6,7 +6,7 @@ import ListEntryRow from "../components/ListEntryRow";
 import BookCoverCard from "../components/BookCoverCard";
 
 export default function Home() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { entries, isLoading: isListLoading } = useMyList();
   const { data: recommended, isLoading: isRecsLoading } = useRecommendations(5);
 
@@ -15,36 +15,8 @@ export default function Home() {
   );
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 px-4 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">libbro</h1>
-        <button
-          type="button"
-          onClick={() => signOut()}
-          className="text-sm underline"
-        >
-          Sign out
-        </button>
-      </div>
+    <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
       <p className="text-sm text-gray-600">Signed in as {user?.email}</p>
-
-      <nav className="flex flex-wrap gap-2">
-        <Link to="/books" className="rounded border px-3 py-2 text-sm">
-          Search books
-        </Link>
-        <Link to="/my-list" className="rounded border px-3 py-2 text-sm">
-          My list
-        </Link>
-        <Link
-          to="/recommendations"
-          className="rounded border px-3 py-2 text-sm"
-        >
-          Recommended for you
-        </Link>
-        <Link to="/profile" className="rounded border px-3 py-2 text-sm">
-          Your profile
-        </Link>
-      </nav>
 
       <section className="flex flex-col gap-2">
         <h2 className="font-medium">Currently reading</h2>

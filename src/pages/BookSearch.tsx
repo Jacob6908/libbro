@@ -24,7 +24,7 @@ export default function BookSearch() {
   });
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-4 px-4 py-8">
+    <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-8">
       <h1 className="text-2xl font-semibold">Search books</h1>
       <input
         type="search"

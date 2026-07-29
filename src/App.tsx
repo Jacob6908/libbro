@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import Recommendations from "./pages/Recommendations";
 import MyList from "./pages/MyList";
 import RequireAuth from "./components/RequireAuth";
+import AppShell from "./components/AppShell";
 
 function App() {
   return (
@@ -19,53 +20,19 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route
-        path="/"
         element={
           <RequireAuth>
-            <Home />
+            <AppShell />
           </RequireAuth>
         }
-      />
-      <Route
-        path="/books"
-        element={
-          <RequireAuth>
-            <BookSearch />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/books/:bookId"
-        element={
-          <RequireAuth>
-            <BookDetail />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <RequireAuth>
-            <Profile />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/recommendations"
-        element={
-          <RequireAuth>
-            <Recommendations />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/my-list"
-        element={
-          <RequireAuth>
-            <MyList />
-          </RequireAuth>
-        }
-      />
+      >
+        <Route path="/" element={<Home />} />
+        <Route path="/books" element={<BookSearch />} />
+        <Route path="/books/:bookId" element={<BookDetail />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/recommendations" element={<Recommendations />} />
+        <Route path="/my-list" element={<MyList />} />
+      </Route>
     </Routes>
   );
 }

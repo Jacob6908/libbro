@@ -6,7 +6,7 @@ export default function Recommendations() {
   const { data: books, isLoading, error } = useRecommendations(30);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-4 px-4 py-8">
+    <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Recommended for you</h1>
         <Link to="/profile" className="text-sm underline">

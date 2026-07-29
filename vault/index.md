@@ -4,11 +4,15 @@ Entry point for `libbro`'s knowledge base. Documents durable project
 knowledge that would be hard or risky to rediscover from the code alone —
 it does not duplicate the codebase or log every action taken here.
 
-**State as of this audit (2026-07-29):** v1 is built — auth, book search
-via Google Books, per-book reading tracking, genre-preference-based
-recommendations, and a home dashboard/list view. See `working/issho-study.md`
-for the read-only study of the reference app `issho` that informed these
-choices, and `decisions/` for the specific tradeoffs made.
+**State as of this audit (2026-07-28):** v1 (auth, book search via Google
+Books, per-book reading tracking, genre-preference-based recommendations,
+home dashboard/list view) is built and merged to `main` on GitHub
+(`Jacob6908/libbro`, public). Since then, a persistent nav bar and real
+avatar upload with cropping have also shipped and merged. See
+`working/issho-study.md` for the read-only study of the reference app
+`issho` that informed the original choices, `decisions/` for the specific
+tradeoffs made, and `runbooks/git-workflow.md` for how changes get from
+the `production` branch into `main`.
 
 ## Documents
 
@@ -16,20 +20,24 @@ choices, and `decisions/` for the specific tradeoffs made.
   explicit non-goals for this version.
 - [`architecture.md`](architecture.md) — stack, directory layout,
   database schema (live-verified — **not in git**, see ADR-002), auth
-  flow, book-metadata integration, recommendation engine, security
-  boundaries.
+  flow, routing/layout, book-metadata integration, avatar upload,
+  recommendation engine, security boundaries.
 - [`quality.md`](quality.md) — install/dev/lint/typecheck/build commands,
-  each verified during this audit; no test suite exists (deliberate).
+  each re-verified during this audit; no test suite exists (deliberate).
 - [`specs/`](specs/) — `book-metadata-import.md`, `reading-tracking.md`,
-  `recommendations.md`. Auth, profile editing, and the home/list views
-  are covered in `architecture.md` rather than duplicated into specs,
-  since they're straightforward CRUD without much non-obvious behavior.
+  `recommendations.md`, `avatar-upload.md`. Auth, profile editing (aside
+  from avatar), and the home/list/nav views are covered in
+  `architecture.md` rather than duplicated into specs, since they're
+  straightforward CRUD/UI without much non-obvious behavior.
 - [`decisions/`](decisions/) — five ADRs covering the major choices made
   building v1: Supabase as the whole backend, dashboard-managed schema,
   Google Books behind a provider interface, content-based-only
-  recommendations, and deferring series/volume support.
-- `runbooks/` — not yet created. No deployment, migration, or incident
-  process exists in this repo to document.
+  recommendations, and deferring series/volume support. (The nav bar and
+  avatar upload were routine feature additions following these existing
+  decisions, not new architectural tradeoffs — documented in
+  `architecture.md`/`specs/` instead of new ADRs.)
+- [`runbooks/git-workflow.md`](runbooks/git-workflow.md) — the
+  `production` → `main` PR flow, verified against two real merges.
 - [`working/current-focus.md`](working/current-focus.md) — temporary,
   current project context.
 - [`working/open-questions.md`](working/open-questions.md) — unresolved

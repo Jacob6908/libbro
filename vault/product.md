@@ -28,9 +28,11 @@ these — treat as open until stated.
    `components/ListEntryEditor.tsx`).
 4. **Browse your list** — `/my-list`, filterable by status tab
    (`MyList.tsx`).
-5. **Set genre preferences** — weighted (Meh/Like/Love) picks across a
-   curated 24-genre taxonomy, on the profile page
-   (`components/GenrePreferencePicker.tsx`).
+5. **Edit profile** — username, bio, and an avatar photo (upload + crop
+   to a fixed circular size, Instagram-style — `components/
+   AvatarCropModal.tsx`), plus weighted (Meh/Like/Love) genre preferences
+   across a curated 24-genre taxonomy
+   (`components/GenrePreferencePicker.tsx`), on the profile page.
 6. **Get recommendations** — a personal "recommended for you" feed
    (`Recommendations.tsx`) combining genre preferences and inferred taste
    from ratings, plus a per-book "similar to this" widget

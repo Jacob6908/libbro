@@ -38,10 +38,6 @@ Answer these with real evidence when it appears — don't guess.
 
 ## Product
 
-- **Real avatar upload vs. URL field?** Shipped as a simple URL text
-  input rather than a Supabase Storage upload, to avoid standing up a
-  bucket + policies for something not explicitly requested. Why it
-  matters: revisit if real image upload becomes a stated requirement.
 - **When (if ever) does series/volume tracking get built?** Deliberately
   deferred, see `decisions/ADR-005-defer-series-and-volumes.md`. No
   target version or timeline exists.

@@ -1,18 +1,19 @@
 # Architecture
 
-Verified against the repo and the live Supabase project during the
-2026-07-29 audit. Schema/RLS facts were confirmed by querying the live
-project directly (schema is not in git — see below) rather than assumed
-from prior notes.
+Verified against the repo and the live Supabase project, most recently
+during the 2026-07-28 audit. Schema/RLS facts were confirmed by querying
+the live project directly (schema is not in git — see below) rather than
+assumed from prior notes.
 
 ## Stack
 
 Client-only SPA, no custom backend server:
 
 - **Frontend**: Vite 7 + React 19 + TypeScript (strict) + Tailwind CSS 4 +
-  react-router 8 + TanStack Query 5. Config mirrors the reference app
-  `issho`'s conventions (`eslint.config.js`, `.prettierrc`,
-  `tsconfig.app.json`/`tsconfig.node.json` project references).
+  react-router 8 + TanStack Query 5 + react-easy-crop (avatar cropping).
+  Config mirrors the reference app `issho`'s conventions
+  (`eslint.config.js`, `.prettierrc`, `tsconfig.app.json`/
+  `tsconfig.node.json` project references).
 - **Backend**: Supabase (Postgres + Auth), accessed directly from the
   browser via `@supabase/supabase-js` with the anon/publishable key
   (`src/supabase-client.ts`). No service-role usage anywhere in `src/`.
@@ -30,10 +31,12 @@ Client-only SPA, no custom backend server:
 ```
 src/
   api/          bookImport.ts, bookMapping.ts — provider-agnostic import/mapping
-  components/   shared UI (BookCoverCard, ListEntryEditor, GenrePreferencePicker, ...)
+  components/   shared UI (NavBar, AppShell, BookCoverCard, ListEntryEditor,
+                 GenrePreferencePicker, AvatarImage, AvatarCropModal, ...)
   context/      AuthContext / AuthProvider
   hooks/        one hook per data concern (useAuth, useMyList, useRecommendations, ...)
-  lib/          pure helpers (genreMapping.ts — category string -> genre slug)
+  lib/          pure helpers (genreMapping.ts — category string -> genre slug;
+                 cropImage.ts — canvas crop-to-fixed-size utility)
   pages/        one component per route
   services/
     metadata/   BookMetadataProvider interface + googleBooksProvider implementation
@@ -41,6 +44,16 @@ src/
     recommendations.ts   scoring logic, no DB-side logic
   types/database.types.ts   hand-written types mirroring the live schema
 ```
+
+### Routing / layout
+
+All authenticated routes are nested under one `RequireAuth` + `AppShell`
+layout route in `src/App.tsx` (react-router's `<Outlet/>` pattern), rather
+than each route wrapping its own `RequireAuth`. `AppShell` renders a
+persistent `NavBar` ("libbro" home link + links to every authenticated
+page + sign out, with active-link highlighting) above the routed page
+content. The four auth pages (`/signin`, `/signup`, `/forgot-password`,
+`/reset-password`) sit outside this layout and never show the nav bar.
 
 ## Database schema (live-verified, not in git)
 
@@ -85,6 +98,22 @@ on_hold`.
   missing grant — Postgres/PostgREST fails these as "permission denied"
   with no client-side type error to catch it.
 
+### Storage (avatars)
+
+A Supabase Storage bucket `avatars` (public-read, 5MB file size limit,
+JPEG/PNG/WebP/GIF only — enforced both client-side before crop and by the
+bucket's own limits) holds one object per user at `{userId}/avatar.{ext}`,
+uploaded with `upsert: true` so re-uploading replaces the same object
+rather than accumulating old files. RLS on `storage.objects` (not
+`storage.buckets` — the client SDK's `getBucket()`/bucket-listing calls
+aren't usable from the app and aren't needed, since the app always
+addresses the bucket by its known name) scopes INSERT/UPDATE to a path
+whose first folder segment matches `auth.uid()` via
+`storage.foldername(name)`; SELECT is open to anyone (avatar images need
+to be publicly viewable). Verified live: upload, public read, and
+per-user path scoping all confirmed working directly against the project
+during this audit.
+
 ## Auth flow
 
 Single Supabase client (`src/supabase-client.ts`) using
@@ -116,6 +145,19 @@ fetch/map/upsert. Search (`BookSearch.tsx`) merges a local Postgres
 full-text query against `books.search_vector` with a live, debounced
 query against the provider — local results are instant, remote-only
 results get imported on click, not on every keystroke.
+
+## Avatar upload
+
+Selecting a photo (`Profile.tsx`) opens `AvatarCropModal`
+(react-easy-crop) before anything is uploaded — drag to reposition, zoom
+slider, circular crop mask matching the display shape. On confirm,
+`lib/cropImage.ts` renders the selected region onto a canvas and exports
+a fixed 512×512 JPEG (quality 0.92) regardless of the source photo's size
+or aspect ratio, so every stored avatar is uniform. That file is what
+gets uploaded to the `avatars` bucket (see Storage above), not the
+original. Source-file validation (type + a generous 20MB size cap, since
+raw phone photos can exceed the old 5MB limit) happens before the crop
+step; the crop output itself is always small regardless.
 
 ## Recommendation engine
 

@@ -1,8 +1,8 @@
 # Current Focus
 
 v1 of libbro (auth, book tracking, recommendations) was built and merged
-to `main` on GitHub (`Jacob6908/libbro`, public). Since then, three more
-features shipped on `production` and were merged via PR:
+to `main` on GitHub (`Jacob6908/libbro`, public). Since then, four more
+features shipped on `production`:
 
 - A persistent top nav bar (`libbro` home link + links to every
   authenticated page + sign out) via a shared `AppShell` layout.
@@ -15,13 +15,17 @@ features shipped on `production` and were merged via PR:
   button list. Preference strength is no longer user-adjustable — see
   `specs/genre-preferences.md` and the open weight-column question
   below.
+- The genre palette promoted to the app's primary visual theme: a
+  warm-tinted page background, white content surfaces, and a single
+  slate primary accent for buttons/links/active states everywhere — see
+  `decisions/ADR-006-genre-palette-as-primary-theme.md`.
 
-All three are live on `main` as of this audit (PR #4, the genre-picker
-rework, merged on GitHub outside this session — **local `main` is
-currently behind `origin/main` by that merge commit** and needs the sync
-step in `vault/runbooks/git-workflow.md` run before working from local
-`main`). A `/ship` skill was also added this session to automate the
-push-and-open-PR half of that runbook (not the merge step).
+The first three are merged to `main` (PR #4, the genre-picker rework,
+merged on GitHub outside a session — **local `main` is still behind
+`origin/main`** and needs the sync step in
+`vault/runbooks/git-workflow.md`). The pastel-theme work is committed on
+`production` but not yet pushed/PR'd as of this audit — `/ship` covers
+that when ready.
 
 Not yet done, in rough priority order (see `working/open-questions.md`
 for the reasoning behind each):
@@ -36,6 +40,9 @@ for the reasoning behind each):
   retired, or eventually gets driven by a real signal (see
   `specs/genre-preferences.md`) — recommended to keep it during this
   session's rework, not yet confirmed by the user.
+- No hover/`focus-visible` states on any button anywhere (predates the
+  new primary-color theme, but more noticeable now that there's a real
+  accent color to react on).
 
 Update this file as focus shifts — it's temporary scratch context, not a
 changelog.

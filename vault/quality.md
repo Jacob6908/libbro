@@ -73,11 +73,11 @@ npm run build
 ```
 
 Runs `tsc -b && vite build`, outputs to `dist/` (gitignored). **Verified
-passing** as of this audit — ~930ms, one non-blocking warning about the
-main JS chunk exceeding 500kB (545kB as of this audit, up from 542kB
-before the genre-preference modal rework; no code-splitting has been set
-up yet — worth revisiting if the bundle keeps growing, not a failure
-today).
+passing** as of this audit — ~900ms, one non-blocking warning about the
+main JS chunk exceeding 500kB (545.68kB as of this audit — the app-wide
+pastel theme rework was almost entirely className/CSS churn, so it barely
+moved the number; no code-splitting has been set up yet — worth
+revisiting if the bundle keeps growing, not a failure today).
 
 ## Tests
 

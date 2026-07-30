@@ -13,7 +13,9 @@ Client-only SPA, no custom backend server:
   react-router 8 + TanStack Query 5 + react-easy-crop (avatar cropping).
   Config mirrors the reference app `issho`'s conventions
   (`eslint.config.js`, `.prettierrc`, `tsconfig.app.json`/
-  `tsconfig.node.json` project references).
+  `tsconfig.node.json` project references). Visual theme is a small set
+  of Tailwind `@theme` tokens (see "Design tokens" below), not `issho`'s
+  convention — this is libbro's own.
 - **Backend**: Supabase (Postgres + Auth), accessed directly from the
   browser via `@supabase/supabase-js` with the anon/publishable key
   (`src/supabase-client.ts`). No service-role usage anywhere in `src/`.
@@ -161,13 +163,39 @@ original. Source-file validation (type + a generous 20MB size cap, since
 raw phone photos can exceed the old 5MB limit) happens before the crop
 step; the crop output itself is always small regardless.
 
+## Design tokens
+
+`src/index.css` defines the app's only design-token layer, via Tailwind
+v4's `@theme` block (`decisions/ADR-006-genre-palette-as-primary-theme.md`):
+
+| Token | Value | Used for |
+|---|---|---|
+| `--color-page` | `#f6f1e8` (warm, neutral off-white) | `body` background — the tinted page behind every screen |
+| `--color-ink` | `#2b271f` | `body` text color (the app's base text color) |
+| `--color-primary` | `#4c6a83` (slate) | The one repeated accent: primary buttons, links, active nav/tab state, hover states |
+
+Tailwind auto-generates `bg-page`/`text-page`, `bg-primary`/
+`text-primary`/`border-primary`, etc. from these. Bordered "card"
+containers, list rows, and form inputs across every page/component get
+an explicit `bg-white` so they read as white surfaces on the tinted
+page rather than blending into it. Semantic colors already in use
+elsewhere — yellow star ratings (`ListEntryEditor`), red error text
+throughout — are deliberately outside this token system; they're
+functional/conventional colors, not brand accents, and weren't
+recolored. No hover or `focus-visible` styling exists on any button
+anywhere in the app (true before this token system existed too).
+
 ## Genre preference editing
 
 Selecting genres (`Profile.tsx` -> `GenrePreferencePicker.tsx`) opens
 `GenrePreferenceModal.tsx`: all 24 genres float as a gently swaying,
 tap-to-highlight paragraph (per-genre accent color cycling through 8
-hues via `lib/genreColors.ts`, so every 8th genre alphabetically repeats
-a color — a known, accepted limit of the palette, not a bug). Selection
+soft-pastel hues via `lib/genreColors.ts` — the same tokens described
+above, at pastel depth rather than `--color-primary`'s full strength —
+so every 8th genre alphabetically repeats a color — a known, accepted
+limit of the palette, not a bug). Selected genres render with dark ink
+text rather than white, since the pastel fills don't support white text
+legibly. Selection
 is a local draft (a `Set<number>` of genre ids) until "Save preferences"
 diffs it against the fetched preferences and issues the minimum set of
 upsert/delete calls; "Skip for now" discards the draft. See

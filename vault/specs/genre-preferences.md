@@ -37,11 +37,16 @@ preferences untouched.
   deselected genres are deleted; untouched genres are left alone
   (existing row and weight unchanged, whatever it is).
 - Each genre gets a stable accent color from `lib/genreColors.ts`, which
-  cycles 8 hex colors by the genre's position in the alphabetized
-  `genres` list fetched from Supabase (`getAllGenres` orders by `name`).
-  With 24 genres and 8 colors, every genre exactly 8 positions apart
-  alphabetically shares a color (e.g. Fantasy and Mystery) — an accepted
-  visual limit of the palette size, not a bug.
+  cycles 8 soft-pastel hex colors by the genre's position in the
+  alphabetized `genres` list fetched from Supabase (`getAllGenres`
+  orders by `name`). With 24 genres and 8 colors, every genre exactly 8
+  positions apart alphabetically shares a color (e.g. Fantasy and
+  Mystery) — an accepted visual limit of the palette size, not a bug.
+  Selected genre text renders in dark ink, not white, since the pastel
+  fills don't support white text legibly. These same 8 hues (at this
+  pastel depth) went on to become the app's primary UI theme — see
+  `architecture.md`'s "Design tokens" section and
+  `decisions/ADR-006-genre-palette-as-primary-theme.md`.
 - The floating/swaying motion is continuous CSS animation
   (`GenrePreferenceModal.css`); `prefers-reduced-motion: reduce` disables
   it entirely, falling back to a static layout.

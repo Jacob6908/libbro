@@ -9,7 +9,7 @@ export default function Recommendations() {
     <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Recommended for you</h1>
-        <Link to="/profile" className="text-sm underline">
+        <Link to="/profile" className="text-sm text-primary underline">
           Edit genre preferences
         </Link>
       </div>
@@ -34,7 +34,7 @@ export default function Recommendations() {
           <li key={book.id}>
             <Link
               to={`/books/${book.id}`}
-              className="flex items-center gap-3 rounded border px-3 py-2"
+              className="flex items-center gap-3 rounded border bg-white px-3 py-2"
             >
               <BookCoverCard
                 title={book.title}

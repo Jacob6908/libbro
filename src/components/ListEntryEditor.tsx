@@ -76,7 +76,7 @@ function ListEntryForm({
       : "";
 
   return (
-    <section className="flex flex-col gap-3 rounded border p-4">
+    <section className="flex flex-col gap-3 rounded border bg-white p-4">
       <h2 className="font-medium">Your tracking</h2>
 
       <label className="flex flex-col gap-1 text-sm">
@@ -84,7 +84,7 @@ function ListEntryForm({
         <select
           value={status}
           onChange={(event) => setStatus(event.target.value as ReadingStatus)}
-          className="rounded border px-2 py-1"
+          className="rounded border bg-white px-2 py-1"
         >
           {STATUS_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -132,7 +132,7 @@ function ListEntryForm({
           value={review}
           onChange={(event) => setReview(event.target.value)}
           rows={3}
-          className="rounded border px-2 py-1"
+          className="rounded border bg-white px-2 py-1"
           placeholder="Private notes about this book"
         />
       </label>
@@ -149,7 +149,7 @@ function ListEntryForm({
               review: review.trim() || null,
             })
           }
-          className="rounded bg-black px-3 py-2 text-sm text-white disabled:opacity-50"
+          className="rounded bg-primary px-3 py-2 text-sm text-white disabled:opacity-50"
         >
           {isSaving ? "Saving..." : entry ? "Update" : "Add to list"}
         </button>
@@ -158,7 +158,7 @@ function ListEntryForm({
             type="button"
             disabled={isRemoving}
             onClick={() => onRemove()}
-            className="rounded border px-3 py-2 text-sm disabled:opacity-50"
+            className="rounded border bg-white px-3 py-2 text-sm disabled:opacity-50"
           >
             {isRemoving ? "Removing..." : "Remove from list"}
           </button>

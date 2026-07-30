@@ -38,7 +38,10 @@ export default function Home() {
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <h2 className="font-medium">Recommended for you</h2>
-          <Link to="/recommendations" className="text-sm underline">
+          <Link
+            to="/recommendations"
+            className="text-sm text-primary underline"
+          >
             See all
           </Link>
         </div>
@@ -48,7 +51,7 @@ export default function Home() {
             <li key={book.id}>
               <Link
                 to={`/books/${book.id}`}
-                className="flex items-center gap-3 rounded border px-3 py-2"
+                className="flex items-center gap-3 rounded border bg-white px-3 py-2"
               >
                 <BookCoverCard
                   title={book.title}

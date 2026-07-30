@@ -12,7 +12,7 @@ export default function NavBar() {
   const { signOut } = useAuth();
 
   return (
-    <header className="border-b">
+    <header className="border-b bg-white">
       <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
         <Link to="/" className="text-lg font-semibold">
           libbro
@@ -24,8 +24,8 @@ export default function NavBar() {
               to={link.to}
               className={({ isActive }) =>
                 isActive
-                  ? "font-semibold text-black"
-                  : "text-gray-600 hover:text-black"
+                  ? "font-semibold text-primary"
+                  : "text-gray-600 hover:text-primary"
               }
             >
               {link.label}
@@ -34,7 +34,7 @@ export default function NavBar() {
           <button
             type="button"
             onClick={() => signOut()}
-            className="text-gray-600 hover:text-black"
+            className="text-gray-600 hover:text-primary"
           >
             Sign out
           </button>

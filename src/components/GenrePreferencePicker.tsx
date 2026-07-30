@@ -23,13 +23,13 @@ export default function GenrePreferencePicker() {
   };
 
   return (
-    <section className="flex flex-col gap-3 rounded border p-4">
+    <section className="flex flex-col gap-3 rounded border bg-white p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-medium">Genre preferences</h2>
         <button
           type="button"
           onClick={() => setIsEditing(true)}
-          className="rounded border px-3 py-1.5 text-sm"
+          className="rounded border bg-white px-3 py-1.5 text-sm"
         >
           Edit genres
         </button>
@@ -45,7 +45,7 @@ export default function GenrePreferencePicker() {
           selectedGenres.map((genre) => (
             <span
               key={genre.id}
-              className="rounded-full px-3 py-1 text-xs font-medium text-white"
+              className="rounded-full px-3 py-1 text-xs font-medium text-ink"
               style={{ background: colorByGenreId.get(genre.id) }}
             >
               {genre.name}

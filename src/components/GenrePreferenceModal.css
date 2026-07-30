@@ -47,12 +47,12 @@
   font-size: 17px;
   font-weight: 600;
   padding: 4px 5px;
-  color: #201c14;
+  color: var(--color-ink);
   cursor: pointer;
   transition: color 0.22s ease 0.05s;
 }
 .word-btn:hover:not(.selected) {
-  color: #a9791c;
+  color: var(--color-primary);
 }
 .word-btn .mark {
   position: absolute;
@@ -66,7 +66,7 @@
   z-index: -1;
 }
 .word-btn.selected {
-  color: #fff;
+  color: var(--color-ink);
 }
 .word-btn.selected .mark {
   right: -1px;

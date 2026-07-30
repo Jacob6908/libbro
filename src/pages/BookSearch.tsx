@@ -31,7 +31,7 @@ export default function BookSearch() {
         placeholder="Title or author"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        className="rounded border px-3 py-2"
+        className="rounded border bg-white px-3 py-2"
         autoFocus
       />
       {isLoading && <p className="text-sm text-gray-500">Searching...</p>}
@@ -47,7 +47,7 @@ export default function BookSearch() {
               type="button"
               disabled={openBook.isPending}
               onClick={() => openBook.mutate(result)}
-              className="flex w-full items-center gap-3 rounded border px-3 py-2 text-left disabled:opacity-50"
+              className="flex w-full items-center gap-3 rounded border bg-white px-3 py-2 text-left disabled:opacity-50"
             >
               <BookCoverCard
                 title={result.title}

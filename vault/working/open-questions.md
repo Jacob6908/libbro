@@ -41,3 +41,17 @@ Answer these with real evidence when it appears — don't guess.
 - **When (if ever) does series/volume tracking get built?** Deliberately
   deferred, see `decisions/ADR-005-defer-series-and-volumes.md`. No
   target version or timeline exists.
+- **Should `profile_genre_preferences.weight` stay fixed at 2 long-term?**
+  The genre-preference modal rework (see `specs/genre-preferences.md`)
+  made the picker binary; every new selection writes a constant
+  `weight = 2`, and the column itself was kept rather than dropped
+  (recommendation given: keep it as headroom for a future strength
+  signal, since 2 pre-existing rows still carry real `weight = 3` data
+  that a schema migration would have destroyed). That recommendation was
+  never explicitly confirmed by the user — the conversation moved on to
+  shipping before answering it. Why it matters: `specs/recommendations.md`
+  still describes the explicit signal as weight-driven, but in practice
+  it's now nearly flat; if the answer turns out to be "derive weight from
+  something real" (e.g. genre frequency among rated books), that's a
+  small, well-contained change to `useGenrePreferences.ts` — but nobody
+  should assume that's the plan until it's actually decided.

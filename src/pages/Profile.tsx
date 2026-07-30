@@ -99,14 +99,14 @@ function AvatarUploader({
     selectError ?? (error instanceof Error ? error.message : null);
 
   return (
-    <section className="flex items-center gap-4 rounded border p-4">
+    <section className="flex items-center gap-4 rounded border bg-white p-4">
       <AvatarImage url={avatarUrl} size={64} />
       <div className="flex flex-col gap-1">
         <button
           type="button"
           disabled={isUploading}
           onClick={() => inputRef.current?.click()}
-          className="w-fit rounded border px-3 py-2 text-sm disabled:opacity-50"
+          className="w-fit rounded border bg-white px-3 py-2 text-sm disabled:opacity-50"
         >
           {isUploading ? "Uploading..." : "Change photo"}
         </button>
@@ -150,14 +150,14 @@ function ProfileForm({
   const [bio, setBio] = useState(profile?.bio ?? "");
 
   return (
-    <section className="flex flex-col gap-3 rounded border p-4">
+    <section className="flex flex-col gap-3 rounded border bg-white p-4">
       <label className="flex flex-col gap-1 text-sm">
         Username
         <input
           type="text"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
-          className="rounded border px-2 py-1"
+          className="rounded border bg-white px-2 py-1"
         />
       </label>
 
@@ -167,7 +167,7 @@ function ProfileForm({
           value={bio}
           onChange={(event) => setBio(event.target.value)}
           rows={3}
-          className="rounded border px-2 py-1"
+          className="rounded border bg-white px-2 py-1"
         />
       </label>
 
@@ -184,7 +184,7 @@ function ProfileForm({
             bio: bio.trim() || null,
           })
         }
-        className="w-fit rounded bg-black px-3 py-2 text-sm text-white disabled:opacity-50"
+        className="w-fit rounded bg-primary px-3 py-2 text-sm text-white disabled:opacity-50"
       >
         {isSaving ? "Saving..." : "Save profile"}
       </button>

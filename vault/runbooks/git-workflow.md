@@ -1,7 +1,7 @@
 # Git / GitHub workflow
 
-Established and verified in practice (two real PRs merged this way) as
-of the 2026-07-28 audit. Repo: `github.com/Jacob6908/libbro` (public).
+Established and verified in practice (three real PRs merged this way as
+of this audit) — repo: `github.com/Jacob6908/libbro` (public).
 
 ## Branches
 
@@ -18,6 +18,12 @@ of the 2026-07-28 audit. Repo: `github.com/Jacob6908/libbro` (public).
 3. `git push origin production`.
 4. Open a PR into `main`:
    `gh pr create --base main --head production --title "..." --body "..."`
+
+   Steps 2-4 can be run in one shot via the `/ship` skill (added
+   2026-07-29): it commits anything pending using the same screening as
+   `/commit`, pushes, checks for an already-open PR before creating a
+   new one, and stops — it never merges, so step 5 below is always a
+   separate, explicit action regardless of how the PR was opened.
 5. Merge it: `gh pr merge <number> --merge --delete-branch=false` — a
    real merge commit, not squash or rebase; `production` is kept, not
    deleted, since it's the ongoing working branch.

@@ -32,10 +32,12 @@ Client-only SPA, no custom backend server:
 src/
   api/          bookImport.ts, bookMapping.ts — provider-agnostic import/mapping
   components/   shared UI (NavBar, AppShell, BookCoverCard, ListEntryEditor,
-                 GenrePreferencePicker, AvatarImage, AvatarCropModal, ...)
+                 GenrePreferencePicker, GenrePreferenceModal, AvatarImage,
+                 AvatarCropModal, ...)
   context/      AuthContext / AuthProvider
   hooks/        one hook per data concern (useAuth, useMyList, useRecommendations, ...)
   lib/          pure helpers (genreMapping.ts — category string -> genre slug;
+                 genreColors.ts — genre id -> cycling accent color;
                  cropImage.ts — canvas crop-to-fixed-size utility)
   pages/        one component per route
   services/
@@ -69,7 +71,7 @@ non-trivial schema work, since drift here is undetectable from git.
 | `profiles` | 1:1 with `auth.users`, auto-created via a `handle_new_user()` trigger on signup | `id`, `username`, `avatar_url`, `bio` |
 | `genres` | Curated flat taxonomy, 24 seeded rows, app-read-only | `id`, `name`, `slug` |
 | `category_aliases` | Caches Google Books' raw category strings -> `genre_id`; app can insert new unmapped entries, only a human can correct a mapping (no UPDATE grant) | `raw_category` (PK), `genre_id` |
-| `profile_genre_preferences` | Explicit weighted (1-3) genre preferences | `profile_id`, `genre_id`, `weight` |
+| `profile_genre_preferences` | Explicit genre preferences | `profile_id`, `genre_id`, `weight` (1-3 check constraint, default 2) |
 | `books` | Durable cache of imported Google Books volumes, keyed by `(provider, external_id)` so a future metadata source swap doesn't require a schema change | `id`, `provider`, `external_id`, `title`, `authors[]`, `raw_categories[]`, `fetched_at` (TTL clock), `search_vector` (generated tsvector) |
 | `book_genres` | Normalized many-to-many replacing Google's freeform categories | `book_id`, `genre_id` |
 | `list_entries` | Per-user book tracking, one row per (user, book) — no series/season split | `user_id`, `book_id`, `status` (enum), `percent_complete`, `rating` (1-5), `review`, `started_at`, `finished_at` |
@@ -159,17 +161,45 @@ original. Source-file validation (type + a generous 20MB size cap, since
 raw phone photos can exceed the old 5MB limit) happens before the crop
 step; the crop output itself is always small regardless.
 
+## Genre preference editing
+
+Selecting genres (`Profile.tsx` -> `GenrePreferencePicker.tsx`) opens
+`GenrePreferenceModal.tsx`: all 24 genres float as a gently swaying,
+tap-to-highlight paragraph (per-genre accent color cycling through 8
+hues via `lib/genreColors.ts`, so every 8th genre alphabetically repeats
+a color — a known, accepted limit of the palette, not a bug). Selection
+is a local draft (a `Set<number>` of genre ids) until "Save preferences"
+diffs it against the fetched preferences and issues the minimum set of
+upsert/delete calls; "Skip for now" discards the draft. See
+`specs/genre-preferences.md` for full behavior and
+`working/open-questions.md` for the weight question below.
+
+**`weight` is no longer user-adjustable.** The picker only expresses
+selected/not-selected; every new explicit preference is written with a
+fixed `weight = 2` (`EXPLICIT_WEIGHT` in `useGenrePreferences.ts`, which
+matches the column's own DB default — no schema change was needed for
+this). As of this audit the live table still has 2 rows with `weight = 3`, left
+over from before this change. The save diff only acts on genres whose
+selected/not-selected state actually changed: an already-selected genre
+left untouched in the modal keeps its stored weight (3, in those 2 rows)
+indefinitely, but deselecting it and later reselecting it rewrites it as
+`weight = 2` via upsert — so historical variance decays away over time
+as users touch their preferences again, rather than being migrated all
+at once.
+
 ## Recommendation engine
 
 `src/services/recommendations.ts` — plain TypeScript, no scoring logic in
 Postgres (queries are simple selects only). `getRecommendationsForUser`
-combines explicit `profile_genre_preferences` weights (×2) with inferred
-per-genre affinity from the user's own ratings, centered on the 1-5
-scale's midpoint (×1); falls back to popularity ordering
-(`average_rating`/`ratings_count`) for a cold-start user with no signal.
-`getSimilarBooks` ranks by shared-genre count and author overlap, no user
-context. Content-based only — no collaborative filtering, since there's
-no social graph in this version (`decisions/ADR-004`).
+combines explicit `profile_genre_preferences` weights (×2 — in practice
+now almost always a flat 2, per above, since the picker no longer
+exposes a range) with inferred per-genre affinity from the user's own
+ratings, centered on the 1-5 scale's midpoint (×1); falls back to
+popularity ordering (`average_rating`/`ratings_count`) for a cold-start
+user with no signal. `getSimilarBooks` ranks by shared-genre count and
+author overlap, no user context. Content-based only — no collaborative
+filtering, since there's no social graph in this version
+(`decisions/ADR-004`).
 
 ## Security boundaries
 

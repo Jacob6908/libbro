@@ -44,7 +44,7 @@ export default function SignUp() {
           We sent a confirmation link to {email}. Follow it to finish creating
           your account.
         </p>
-        <Link to="/signin" className="text-sm underline">
+        <Link to="/signin" className="text-sm text-primary underline">
           Back to sign in
         </Link>
       </main>
@@ -61,7 +61,7 @@ export default function SignUp() {
           placeholder="Email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="rounded border px-3 py-2"
+          className="rounded border bg-white px-3 py-2"
         />
         <input
           type="password"
@@ -70,18 +70,18 @@ export default function SignUp() {
           placeholder="Password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="rounded border px-3 py-2"
+          className="rounded border bg-white px-3 py-2"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="rounded bg-primary px-3 py-2 text-white disabled:opacity-50"
         >
           {submitting ? "Creating account..." : "Create account"}
         </button>
       </form>
-      <Link to="/signin" className="text-sm underline">
+      <Link to="/signin" className="text-sm text-primary underline">
         Already have an account? Sign in
       </Link>
     </main>

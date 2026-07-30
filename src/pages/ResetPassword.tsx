@@ -38,13 +38,13 @@ export default function ResetPassword() {
           placeholder="New password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="rounded border px-3 py-2"
+          className="rounded border bg-white px-3 py-2"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="rounded bg-primary px-3 py-2 text-white disabled:opacity-50"
         >
           {submitting ? "Saving..." : "Save new password"}
         </button>

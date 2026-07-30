@@ -34,7 +34,7 @@ export default function ForgotPassword() {
         <p className="text-sm">
           If an account exists for {email}, a password reset link is on its way.
         </p>
-        <Link to="/signin" className="text-sm underline">
+        <Link to="/signin" className="text-sm text-primary underline">
           Back to sign in
         </Link>
       </main>
@@ -51,13 +51,13 @@ export default function ForgotPassword() {
           placeholder="Email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="rounded border px-3 py-2"
+          className="rounded border bg-white px-3 py-2"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
+          className="rounded bg-primary px-3 py-2 text-white disabled:opacity-50"
         >
           {submitting ? "Sending..." : "Send reset link"}
         </button>

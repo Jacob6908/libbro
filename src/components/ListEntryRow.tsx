@@ -14,7 +14,7 @@ export default function ListEntryRow({ entry }: { entry: ListEntryWithBook }) {
   return (
     <Link
       to={`/books/${entry.book.id}`}
-      className="flex items-center justify-between gap-3 rounded border px-3 py-2"
+      className="flex items-center justify-between gap-3 rounded border bg-white px-3 py-2"
     >
       <BookCoverCard
         title={entry.book.title}

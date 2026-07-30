@@ -73,7 +73,7 @@ export default function AvatarCropModal({
             type="button"
             onClick={onCancel}
             disabled={isProcessing}
-            className="rounded border px-3 py-2 text-sm disabled:opacity-50"
+            className="rounded border bg-white px-3 py-2 text-sm disabled:opacity-50"
           >
             Cancel
           </button>
@@ -81,7 +81,7 @@ export default function AvatarCropModal({
             type="button"
             onClick={handleSave}
             disabled={isProcessing || !croppedAreaPixels}
-            className="rounded bg-black px-3 py-2 text-sm text-white disabled:opacity-50"
+            className="rounded bg-primary px-3 py-2 text-sm text-white disabled:opacity-50"
           >
             {isProcessing ? "Saving..." : "Save"}
           </button>

@@ -31,8 +31,8 @@ export default function MyList() {
             onClick={() => setTab(t.value)}
             className={`rounded border px-3 py-1 text-sm ${
               tab === t.value
-                ? "border-black bg-black text-white"
-                : "border-gray-300"
+                ? "border-primary bg-primary text-white"
+                : "border-gray-300 bg-white"
             }`}
           >
             {t.label}

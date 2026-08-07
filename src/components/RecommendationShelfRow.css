@@ -1,0 +1,32 @@
+.shelf-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.shelf-row-title {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.shelf-row-scroll {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.25rem 1.25rem;
+}
+
+.shelf-row-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.shelf-row-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-ink) 20%, transparent);
+  border-radius: 999px;
+}
+
+.shelf-row-item {
+  flex: 0 0 132px;
+}

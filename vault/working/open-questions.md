@@ -3,6 +3,20 @@
 Unresolved questions surfaced during vault audits. Grouped by topic.
 Answer these with real evidence when it appears — don't guess.
 
+## Git workflow
+
+- **Is `book_style` a one-off branch or a shift away from the single
+  `production` working branch?** `runbooks/git-workflow.md` documents
+  one working branch (`production`) that gets pushed and PR'd into
+  `main`. PR #6 (the bookshelf-grid redesign) instead came from a new
+  branch, `book_style`, branched off `production`. Why it matters: if
+  per-feature branches are the new pattern, `git-workflow.md` should be
+  rewritten to describe branch naming/lifecycle (created from where,
+  deleted after merge or not); if it was a one-off, no doc change is
+  needed and `production` remains the answer for future work. Not
+  changed this audit since a single deviation isn't enough evidence to
+  rewrite a documented convention.
+
 ## Deployment
 
 - **Is there a deployment target?** Still unknown as of this audit —

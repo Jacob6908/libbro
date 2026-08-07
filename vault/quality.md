@@ -1,7 +1,8 @@
 # Quality Checks
 
-All commands below were re-run and verified during the 2026-07-29 audit
-unless noted otherwise. Run from the repo root.
+Lint, type-check, and build were re-run and verified during the
+2026-08-03 audit; other commands as noted otherwise. Run from the repo
+root.
 
 ## Install
 
@@ -34,7 +35,7 @@ npm run lint
 
 ESLint flat config (`eslint.config.js`): `@eslint/js` + `typescript-eslint`
 recommended + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh`,
-Prettier enforced as a lint rule. **Verified passing** as of this audit.
+Prettier enforced as a lint rule. **Verified passing** 2026-08-03.
 
 ```
 npm run lint:fix
@@ -61,7 +62,7 @@ Not a `package.json` script (the `build` script runs `tsc -b` as part of
 building, which does write `.tsbuildinfo` cache files under
 `node_modules/.tmp`, and then runs `vite build`). Use the bare
 `--noEmit` form for a pure, non-writing type-check. **Verified passing**
-as of this audit, `strict: true` plus `noUnusedLocals`,
+2026-08-03, `strict: true` plus `noUnusedLocals`,
 `noUnusedParameters`, `noFallthroughCasesInSwitch`,
 `noUncheckedSideEffectImports` in both `tsconfig.app.json` and
 `tsconfig.node.json`.
@@ -73,11 +74,11 @@ npm run build
 ```
 
 Runs `tsc -b && vite build`, outputs to `dist/` (gitignored). **Verified
-passing** as of this audit — ~900ms, one non-blocking warning about the
-main JS chunk exceeding 500kB (545.68kB as of this audit — the app-wide
-pastel theme rework was almost entirely className/CSS churn, so it barely
-moved the number; no code-splitting has been set up yet — worth
-revisiting if the bundle keeps growing, not a failure today).
+passing** 2026-08-03 — ~865ms, one non-blocking warning about the
+main JS chunk exceeding 500kB (547.07kB as of this audit, up slightly
+from 545.68kB at the prior audit after the bookshelf-grid search redesign
+— no code-splitting has been set up yet — worth revisiting if the bundle
+keeps growing, not a failure today).
 
 ## Tests
 

@@ -1,18 +1,22 @@
 import { Link } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { useMyList } from "../hooks/useMyList";
-import { useRecommendations } from "../hooks/useRecommendations";
+import { useRecommendationCategories } from "../hooks/useRecommendations";
 import ListEntryRow from "../components/ListEntryRow";
 import BookCoverCard from "../components/BookCoverCard";
 
 export default function Home() {
   const { user } = useAuth();
   const { entries, isLoading: isListLoading } = useMyList();
-  const { data: recommended, isLoading: isRecsLoading } = useRecommendations(5);
+  const { data: recommendationCategories, isLoading: isRecsLoading } =
+    useRecommendationCategories(5);
 
   const currentlyReading = entries.filter(
     (entry) => entry.status === "reading"
   );
+  const recommended = recommendationCategories
+    ?.flatMap((category) => category.books)
+    .slice(0, 5);
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">

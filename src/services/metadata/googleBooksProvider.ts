@@ -37,6 +37,21 @@ interface GoogleBooksSearchResponse {
   items?: GoogleBooksVolume[];
 }
 
+const STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "by",
+  "for",
+  "i",
+  "in",
+  "of",
+  "on",
+  "or",
+  "the",
+  "to",
+]);
+
 async function fetchWithRetry(
   url: string,
   { retries = 2 }: { retries?: number } = {}
@@ -105,9 +120,68 @@ function withApiKey(url: URL): URL {
   return url;
 }
 
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function getSignificantSearchTerms(query: string): string[] {
+  return normalizeSearchText(query)
+    .split(" ")
+    .filter((term) => term.length >= 3 && !STOP_WORDS.has(term));
+}
+
+function getSearchQueries(query: string): string[] {
+  const terms = getSignificantSearchTerms(query);
+  const queries = [
+    query.split(/\s+/).length > 1 ? `intitle:"${query}"` : null,
+    terms.length > 0 ? terms.map((term) => `intitle:${term}`).join(" ") : null,
+    query,
+  ].filter((value): value is string => value != null);
+
+  return [...new Set(queries)];
+}
+
 async function search(
   query: string,
   { limit = 20 }: { limit?: number } = {}
+): Promise<BookSearchResult[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  const queries = getSearchQueries(trimmed);
+
+  const results = await Promise.allSettled(
+    queries.map((searchQuery) => searchGoogleBooks(searchQuery, limit))
+  );
+  const successfulResults = results.flatMap((result) =>
+    result.status === "fulfilled" ? result.value : []
+  );
+
+  if (successfulResults.length === 0) {
+    const rejected = results.find((result) => result.status === "rejected");
+    if (rejected?.status === "rejected") throw rejected.reason;
+  }
+
+  const byExternalId = new Map<string, BookSearchResult>();
+  for (const result of successfulResults) {
+    if (!byExternalId.has(result.externalId)) {
+      byExternalId.set(result.externalId, result);
+    }
+  }
+
+  return [...byExternalId.values()].slice(0, limit);
+}
+
+async function searchGoogleBooks(
+  query: string,
+  limit: number
 ): Promise<BookSearchResult[]> {
   const url = withApiKey(new URL(GOOGLE_BOOKS_ENDPOINT));
   url.searchParams.set("q", query);

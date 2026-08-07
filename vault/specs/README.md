@@ -24,4 +24,6 @@ last-reviewed: YYYY-MM-DD
 ## Open questions
 ```
 
-Empty for now — no features exist in this repo yet.
+This file documents the format only — see the sibling `.md` files in this
+directory for actual specs (book-metadata-import, reading-tracking,
+recommendations, avatar-upload, genre-preferences).

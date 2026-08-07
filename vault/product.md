@@ -20,8 +20,10 @@ these — treat as open until stated.
 1. **Sign up / sign in** — email + password only, no OAuth
    (`SignUp.tsx`, `SignIn.tsx`, `ForgotPassword.tsx`, `ResetPassword.tsx`).
 2. **Search and add a book** — search merges a local Postgres cache with
-   live Google Books results; selecting a result imports it into the
-   local cache on demand (`BookSearch.tsx`, `api/bookImport.ts`).
+   live Google Books results, shown as a five-per-row bookshelf grid of
+   covers; selecting a result imports it into the local cache on demand
+   (`BookSearch.tsx`, `components/BookShelfCover.tsx`,
+   `api/bookImport.ts`).
 3. **Track a book** — set status (want to read / reading / completed / on
    hold / dropped), a 0–100% progress slider, a 1–5 star rating, and a
    private text note, from the book's detail page (`BookDetail.tsx`,

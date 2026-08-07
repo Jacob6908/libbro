@@ -148,7 +148,15 @@ return the cached row if `fetched_at` is within a 14-day TTL, otherwise
 fetch/map/upsert. Search (`BookSearch.tsx`) merges a local Postgres
 full-text query against `books.search_vector` with a live, debounced
 query against the provider — local results are instant, remote-only
-results get imported on click, not on every keystroke.
+results get imported on click, not on every keystroke. Results render as
+a five-per-row bookshelf grid (`components/BookShelfCover.tsx` +
+`BookShelfCover.css`): a fixed `aspect-ratio` box with an
+absolutely-positioned cover image (not a percentage-height child) keeps
+every cover, and the wood-ledge shelf under it, level with its row
+neighbors regardless of a book's real cover art proportions or caption
+line count. The search query lives in the URL's `q` param
+(`useSearchParams`, `replace: true`) rather than only local state, so
+returning to `/books` via back-navigation restores the prior search.
 
 ## Avatar upload
 

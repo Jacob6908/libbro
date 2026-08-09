@@ -42,13 +42,6 @@ export default function Home() {
     isRemoving: isRemovingSpotlight,
   } = useListEntry(spotlight?.book_id ?? "");
 
-  const spotlightPage =
-    spotlight?.book.page_count && spotlight
-      ? Math.round(
-          (spotlight.percent_complete / 100) * spotlight.book.page_count
-        )
-      : null;
-
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -92,11 +85,7 @@ export default function Home() {
                 </p>
               )}
               <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
-                <span>
-                  {spotlightPage != null
-                    ? `Page ${spotlightPage} of ${spotlight.book.page_count}`
-                    : `${spotlight.percent_complete}% complete`}
-                </span>
+                <span>{spotlight.percent_complete}% complete</span>
                 <div className="h-1.5 w-40 overflow-hidden rounded-full bg-gray-200">
                   <div
                     className="h-full rounded-full bg-primary"

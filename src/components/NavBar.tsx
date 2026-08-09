@@ -5,7 +5,7 @@ import "./NavBar.css";
 
 const LINKS = [
   { to: "/books", label: "Search", color: "#a9c5c2" }, // teal
-  { to: "/profile", label: "Your Books", color: "#e7caa6" }, // ochre
+  { to: "/profile", label: "Your Library", color: "#e7caa6" }, // ochre
   { to: "/recommendations", label: "Recommended", color: "#c4b2c6" }, // plum
 ];
 

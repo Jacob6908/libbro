@@ -12,7 +12,7 @@ import GenrePreferencePicker from "../components/GenrePreferencePicker";
 import { STATUS_COLORS, STATUS_LABELS } from "../lib/statusColors";
 import "../components/BookShelfCover.css";
 
-const ALL_TAB = "all";
+const MY_SHELF = "my-shelf";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -21,28 +21,22 @@ export default function Profile() {
   const { shelves, createShelf, renameShelf, deleteShelf } = useShelves(
     user?.id
   );
-  const [selectedTab, setSelectedTab] = useState<string>(ALL_TAB);
+  const [selectedShelfId, setSelectedShelfId] = useState<string>(MY_SHELF);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isAddingShelf, setIsAddingShelf] = useState(false);
   const [newShelfTitle, setNewShelfTitle] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
 
+  const customShelves = shelves.filter((shelf) => shelf.status_key == null);
   const selectedShelf =
-    selectedTab === ALL_TAB
+    selectedShelfId === MY_SHELF
       ? null
-      : (shelves.find((s) => s.id === selectedTab) ?? null);
-  const isCustomShelf =
-    selectedShelf != null && selectedShelf.status_key == null;
+      : (customShelves.find((s) => s.id === selectedShelfId) ?? null);
 
   const { shelfBooks, removeBook } = useShelfBooks(
-    isCustomShelf ? selectedShelf.id : undefined
+    selectedShelf ? selectedShelf.id : undefined
   );
-
-  const filteredEntries =
-    selectedShelf?.status_key != null
-      ? entries.filter((e) => e.status === selectedShelf.status_key)
-      : entries;
 
   const completedThisYear = useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -75,7 +69,7 @@ export default function Profile() {
     setIsAddingShelf(false);
   };
 
-  const isOwnCustomShelf = isCustomShelf;
+  const isViewingMyShelf = selectedShelfId === MY_SHELF;
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
@@ -97,9 +91,9 @@ export default function Profile() {
           {profile && (
             <Link
               to={`/u/${profile.username}`}
-              className="text-sm font-semibold text-primary"
+              className="rounded-full border bg-white px-4 py-2 text-sm font-semibold text-primary hover:border-primary"
             >
-              Preview how others see your profile →
+              View public profile
             </Link>
           )}
           <button
@@ -112,66 +106,50 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectedTab(ALL_TAB)}
-            className="rounded-full px-4 py-2 text-sm font-bold"
-            style={{
-              background: "var(--color-primary)",
-              color: "white",
-              opacity: selectedTab === ALL_TAB ? 1 : 0.6,
-              outline:
-                selectedTab === ALL_TAB
-                  ? "2px solid var(--color-primary)"
-                  : undefined,
-              outlineOffset: selectedTab === ALL_TAB ? "2px" : undefined,
-            }}
-          >
-            All
-            <span className="ml-1 font-medium opacity-70">
-              {entries.length}
-            </span>
-          </button>
+      <GenrePreferencePicker />
 
-          {shelves.map((shelf) => {
-            const count =
-              shelf.status_key != null
-                ? entries.filter((e) => e.status === shelf.status_key).length
-                : undefined;
-            const chipColor =
-              shelf.status_key != null
-                ? STATUS_COLORS[shelf.status_key]
-                : "#c4b2c6"; // plum, for custom shelves
+      <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
+        <aside className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">
+              Shelves
+            </h2>
+          </div>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedShelfId(MY_SHELF)}
+              className={`rounded border bg-white px-4 py-3 text-left ${
+                isViewingMyShelf
+                  ? "border-primary shadow-sm"
+                  : "border-gray-200"
+              }`}
+            >
+              <span className="block font-semibold">My shelf</span>
+              <span className="text-sm text-gray-500">
+                {entries.length} tracked
+              </span>
+            </button>
 
-            return (
+            {customShelves.map((shelf) => (
               <button
                 key={shelf.id}
                 type="button"
-                onClick={() => setSelectedTab(shelf.id)}
-                className="rounded-full px-4 py-2 text-sm font-bold"
-                style={{
-                  background: `color-mix(in srgb, ${chipColor} 32%, white)`,
-                  color: "var(--color-ink)",
-                  opacity: selectedTab === shelf.id ? 1 : 0.6,
-                  outline:
-                    selectedTab === shelf.id
-                      ? "2px solid var(--color-primary)"
-                      : undefined,
-                  outlineOffset: selectedTab === shelf.id ? "2px" : undefined,
-                }}
+                onClick={() => setSelectedShelfId(shelf.id)}
+                className={`rounded border bg-white px-4 py-3 text-left ${
+                  selectedShelf?.id === shelf.id
+                    ? "border-primary shadow-sm"
+                    : "border-gray-200"
+                }`}
               >
-                {shelf.title}
-                {count != null && (
-                  <span className="ml-1 font-medium opacity-70">{count}</span>
-                )}
+                <span className="block font-semibold">{shelf.title}</span>
+                <span className="text-sm text-gray-500">Custom shelf</span>
               </button>
-            );
-          })}
+            ))}
+          </div>
 
           {isAddingShelf ? (
-            <span className="flex items-center gap-1">
+            <div className="flex flex-col gap-2 rounded border border-dashed bg-white p-3">
               <input
                 autoFocus
                 type="text"
@@ -179,165 +157,179 @@ export default function Profile() {
                 onChange={(e) => setNewShelfTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitNewShelf()}
                 placeholder="Shelf title"
-                className="rounded-full border bg-white px-3 py-1.5 text-sm"
+                className="rounded border bg-white px-3 py-2 text-sm"
               />
-              <button
-                type="button"
-                onClick={submitNewShelf}
-                className="rounded-full border bg-white px-3 py-1.5 text-sm font-semibold"
-              >
-                Add
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddingShelf(false);
-                  setNewShelfTitle("");
-                }}
-                className="text-sm text-gray-400"
-              >
-                Cancel
-              </button>
-            </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={submitNewShelf}
+                  className="text-sm font-semibold text-primary"
+                >
+                  Add shelf
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingShelf(false);
+                    setNewShelfTitle("");
+                  }}
+                  className="text-sm text-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           ) : (
             <button
               type="button"
               onClick={() => setIsAddingShelf(true)}
-              className="rounded-full border border-dashed bg-white px-4 py-2 text-sm font-semibold text-gray-500 hover:border-primary hover:text-primary"
+              className="rounded border border-dashed bg-white px-4 py-3 text-left text-sm font-semibold text-gray-500 hover:border-primary hover:text-primary"
             >
-              + New shelf
+              Add shelf
             </button>
           )}
-        </div>
 
-        {selectedShelf &&
-          (isRenaming ? (
-            <span className="flex items-center gap-2">
-              <input
-                autoFocus
-                type="text"
-                value={renameValue}
-                onChange={(e) => setRenameValue(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submitRename()}
-                className="rounded border bg-white px-2 py-1 text-sm"
-              />
-              <button
-                type="button"
-                onClick={submitRename}
-                className="text-sm font-semibold text-primary"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsRenaming(false)}
-                className="text-sm text-gray-400"
-              >
-                Cancel
-              </button>
-            </span>
-          ) : (
-            <span className="flex items-center gap-3 text-sm">
-              <button
-                type="button"
-                onClick={startRename}
-                className="text-gray-500 hover:text-primary"
-              >
-                ✎ Rename shelf
-              </button>
-              {isOwnCustomShelf && (
+          {selectedShelf &&
+            (isRenaming ? (
+              <div className="flex flex-col gap-2 rounded border bg-white p-3">
+                <input
+                  autoFocus
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && submitRename()}
+                  className="rounded border bg-white px-3 py-2 text-sm"
+                />
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={submitRename}
+                    className="text-sm font-semibold text-primary"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsRenaming(false)}
+                    className="text-sm text-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-start gap-2 text-sm">
+                <button
+                  type="button"
+                  onClick={startRename}
+                  className="text-gray-500 hover:text-primary"
+                >
+                  Rename selected shelf
+                </button>
                 <button
                   type="button"
                   onClick={() => {
                     deleteShelf(selectedShelf.id);
-                    setSelectedTab(ALL_TAB);
+                    setSelectedShelfId(MY_SHELF);
                   }}
                   className="text-red-600 hover:text-red-800"
                 >
-                  ✕ Delete shelf
+                  Delete selected shelf
                 </button>
+              </div>
+            ))}
+        </aside>
+
+        <section className="flex min-w-0 flex-col gap-4">
+          <div>
+            <h2 className="text-xl font-semibold">
+              {selectedShelf?.title ?? "My shelf"}
+            </h2>
+            <p className="text-sm text-gray-500">
+              {isViewingMyShelf
+                ? "Everything you are tracking."
+                : "Books you added to this shelf."}
+            </p>
+          </div>
+
+          {isViewingMyShelf ? (
+            <>
+              {isListLoading && (
+                <p className="text-sm text-gray-500">Loading your books...</p>
               )}
-            </span>
-          ))}
+              {!isListLoading && entries.length === 0 && (
+                <p className="text-sm text-gray-500">
+                  Nothing here yet - search for a book to get started.
+                </p>
+              )}
+
+              <div className="shelf-grid">
+                {entries.map((entry) => (
+                  <Link
+                    key={entry.id}
+                    to={`/books/${entry.book.id}`}
+                    className="shelf-card-btn"
+                  >
+                    <BookShelfCover
+                      title={entry.book.title}
+                      authors={entry.book.authors}
+                      coverImageUrl={entry.book.cover_image_url}
+                      badge={
+                        <span className="shelf-card-badge">
+                          <span
+                            className="shelf-card-badge-swatch"
+                            style={{ background: STATUS_COLORS[entry.status] }}
+                          />
+                          {STATUS_LABELS[entry.status]}
+                          {entry.status === "reading" &&
+                            ` · ${entry.percent_complete}%`}
+                        </span>
+                      }
+                    />
+                  </Link>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              {shelfBooks.length === 0 && (
+                <p className="text-sm text-gray-500">
+                  Nothing on this shelf yet - add a book to it from the book's
+                  page.
+                </p>
+              )}
+              <div className="shelf-grid">
+                {shelfBooks.map(({ book }) => (
+                  <Link
+                    key={book.id}
+                    to={`/books/${book.id}`}
+                    className="shelf-card-btn"
+                  >
+                    <BookShelfCover
+                      title={book.title}
+                      authors={book.authors}
+                      coverImageUrl={book.cover_image_url}
+                      badge={
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeBook(book.id);
+                          }}
+                          className="text-xs font-bold text-red-600 hover:text-red-800"
+                        >
+                          Remove from shelf
+                        </button>
+                      }
+                    />
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </section>
       </div>
-
-      {isCustomShelf ? (
-        <>
-          {shelfBooks.length === 0 && (
-            <p className="text-sm text-gray-500">
-              Nothing on this shelf yet — add a book to it from the book's page.
-            </p>
-          )}
-          <div className="shelf-grid">
-            {shelfBooks.map(({ book }) => (
-              <Link
-                key={book.id}
-                to={`/books/${book.id}`}
-                className="shelf-card-btn"
-              >
-                <BookShelfCover
-                  title={book.title}
-                  authors={book.authors}
-                  coverImageUrl={book.cover_image_url}
-                  badge={
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        removeBook(book.id);
-                      }}
-                      className="text-xs font-bold text-red-600 hover:text-red-800"
-                    >
-                      ✕ Remove from shelf
-                    </button>
-                  }
-                />
-              </Link>
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          {isListLoading && (
-            <p className="text-sm text-gray-500">Loading your books...</p>
-          )}
-          {!isListLoading && filteredEntries.length === 0 && (
-            <p className="text-sm text-gray-500">
-              Nothing here yet - search for a book to get started.
-            </p>
-          )}
-
-          <div className="shelf-grid">
-            {filteredEntries.map((entry) => (
-              <Link
-                key={entry.id}
-                to={`/books/${entry.book.id}`}
-                className="shelf-card-btn"
-              >
-                <BookShelfCover
-                  title={entry.book.title}
-                  authors={entry.book.authors}
-                  coverImageUrl={entry.book.cover_image_url}
-                  badge={
-                    <span className="shelf-card-badge">
-                      <span
-                        className="shelf-card-badge-swatch"
-                        style={{ background: STATUS_COLORS[entry.status] }}
-                      />
-                      {STATUS_LABELS[entry.status]}
-                      {entry.status === "reading" &&
-                        ` · ${entry.percent_complete}%`}
-                    </span>
-                  }
-                />
-              </Link>
-            ))}
-          </div>
-        </>
-      )}
-
-      <GenrePreferencePicker />
 
       {isEditingProfile && (
         <ProfileEditModal onClose={() => setIsEditingProfile(false)} />

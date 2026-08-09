@@ -4,28 +4,22 @@ import { usePublicProfile } from "../hooks/usePublicProfile";
 import { useShelfBooks } from "../hooks/useShelfBooks";
 import AvatarImage from "../components/AvatarImage";
 import BookShelfCover from "../components/BookShelfCover";
-import { STATUS_COLORS, STATUS_LABELS } from "../lib/statusColors";
 import "../components/BookShelfCover.css";
 
 export default function PublicProfile() {
   const { username } = useParams<{ username: string }>();
-  const {
-    profile,
-    isProfileLoading,
-    shelves,
-    isShelvesLoading,
-    readingStatus,
-    isReadingStatusLoading,
-  } = usePublicProfile(username);
+  const { profile, isProfileLoading, shelves, isShelvesLoading } =
+    usePublicProfile(username);
 
   const [selectedShelfId, setSelectedShelfId] = useState<string | null>(null);
+  const customShelves = shelves.filter((shelf) => shelf.status_key == null);
   const selectedShelf =
-    shelves.find((s) => s.id === selectedShelfId) ?? shelves[0] ?? null;
-  const isCustomShelf =
-    selectedShelf != null && selectedShelf.status_key == null;
+    customShelves.find((s) => s.id === selectedShelfId) ??
+    customShelves[0] ??
+    null;
 
   const { shelfBooks, isLoading: isShelfBooksLoading } = useShelfBooks(
-    isCustomShelf ? selectedShelf.id : undefined
+    selectedShelf ? selectedShelf.id : undefined
   );
 
   if (isProfileLoading) {
@@ -40,16 +34,7 @@ export default function PublicProfile() {
     );
   }
 
-  const defaultShelfEntries = selectedShelf?.status_key
-    ? readingStatus.filter((r) => r.status === selectedShelf.status_key)
-    : [];
-
-  const isLoadingBooks = isCustomShelf
-    ? isShelfBooksLoading
-    : isReadingStatusLoading;
-  const books = isCustomShelf
-    ? shelfBooks.map((sb) => sb.book)
-    : defaultShelfEntries.map((r) => r.book);
+  const books = shelfBooks.map((sb) => sb.book);
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
@@ -74,86 +59,76 @@ export default function PublicProfile() {
         <p className="text-sm text-gray-500">Loading shelves...</p>
       )}
 
-      {!isShelvesLoading && shelves.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {shelves.map((shelf) => {
-            const count =
-              shelf.status_key != null
-                ? readingStatus.filter((r) => r.status === shelf.status_key)
-                    .length
-                : undefined;
-            const chipColor =
-              shelf.status_key != null
-                ? STATUS_COLORS[shelf.status_key]
-                : "#c4b2c6";
-            const isSelected = selectedShelf?.id === shelf.id;
+      {!isShelvesLoading && customShelves.length > 0 && (
+        <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
+          <aside className="flex flex-col gap-3">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">
+              Shelves
+            </h2>
+            <div className="flex flex-col gap-2">
+              {customShelves.map((shelf) => {
+                const isSelected = selectedShelf?.id === shelf.id;
 
-            return (
-              <button
-                key={shelf.id}
-                type="button"
-                onClick={() => setSelectedShelfId(shelf.id)}
-                className="rounded-full px-4 py-2 text-sm font-bold"
-                style={{
-                  background: `color-mix(in srgb, ${chipColor} 32%, white)`,
-                  color: "var(--color-ink)",
-                  opacity: isSelected ? 1 : 0.6,
-                  outline: isSelected
-                    ? "2px solid var(--color-primary)"
-                    : undefined,
-                  outlineOffset: isSelected ? "2px" : undefined,
-                }}
-              >
-                {shelf.title}
-                {count != null && (
-                  <span className="ml-1 font-medium opacity-70">{count}</span>
-                )}
-              </button>
-            );
-          })}
+                return (
+                  <button
+                    key={shelf.id}
+                    type="button"
+                    onClick={() => setSelectedShelfId(shelf.id)}
+                    className={`rounded border bg-white px-4 py-3 text-left ${
+                      isSelected
+                        ? "border-primary shadow-sm"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <span className="block font-semibold">{shelf.title}</span>
+                    <span className="text-sm text-gray-500">Shelf</span>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          <section className="flex min-w-0 flex-col gap-4">
+            <div>
+              <h2 className="text-xl font-semibold">
+                {selectedShelf?.title ?? "Shelf"}
+              </h2>
+              <p className="text-sm text-gray-500">
+                Books {profile.username} added to this shelf.
+              </p>
+            </div>
+
+            {isShelfBooksLoading && (
+              <p className="text-sm text-gray-500">Loading books...</p>
+            )}
+            {!isShelfBooksLoading && books.length === 0 && (
+              <p className="text-sm text-gray-500">
+                Nothing on this shelf yet.
+              </p>
+            )}
+
+            <div className="shelf-grid">
+              {books.map((book) => (
+                <Link
+                  key={book.id}
+                  to={`/books/${book.id}`}
+                  className="shelf-card-btn"
+                >
+                  <BookShelfCover
+                    title={book.title}
+                    authors={book.authors}
+                    coverImageUrl={book.cover_image_url}
+                  />
+                </Link>
+              ))}
+            </div>
+          </section>
         </div>
       )}
 
-      {isLoadingBooks && (
-        <p className="text-sm text-gray-500">Loading books...</p>
+      {!isShelvesLoading && customShelves.length === 0 && (
+        <p className="text-sm text-gray-500">No shelves published yet.</p>
       )}
-      {!isLoadingBooks && books.length === 0 && (
-        <p className="text-sm text-gray-500">Nothing on this shelf yet.</p>
-      )}
-
-      <div className="shelf-grid">
-        {books.map((book) => {
-          const status = isCustomShelf
-            ? null
-            : defaultShelfEntries.find((r) => r.book_id === book.id);
-          return (
-            <Link
-              key={book.id}
-              to={`/books/${book.id}`}
-              className="shelf-card-btn"
-            >
-              <BookShelfCover
-                title={book.title}
-                authors={book.authors}
-                coverImageUrl={book.cover_image_url}
-                badge={
-                  status ? (
-                    <span className="shelf-card-badge">
-                      <span
-                        className="shelf-card-badge-swatch"
-                        style={{ background: STATUS_COLORS[status.status] }}
-                      />
-                      {STATUS_LABELS[status.status]}
-                      {status.status === "reading" &&
-                        ` · ${status.percent_complete}%`}
-                    </span>
-                  ) : undefined
-                }
-              />
-            </Link>
-          );
-        })}
-      </div>
     </main>
   );
 }

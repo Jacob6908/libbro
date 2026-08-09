@@ -183,9 +183,10 @@ export default function Profile() {
             <button
               type="button"
               onClick={() => setIsAddingShelf(true)}
-              className="rounded border border-dashed bg-white px-4 py-3 text-left text-sm font-semibold text-gray-500 hover:border-primary hover:text-primary"
+              className="flex items-center gap-2 rounded border border-dashed bg-white px-4 py-3 text-left text-sm font-semibold text-gray-500 hover:border-primary hover:text-primary"
             >
-              Add shelf
+              <span className="text-lg leading-none">+</span>
+              <span>Add shelf</span>
             </button>
           )}
 

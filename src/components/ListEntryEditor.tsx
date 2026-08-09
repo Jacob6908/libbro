@@ -43,10 +43,18 @@ export default function ListEntryEditor({
       ) : (
         <button
           type="button"
-          onClick={() => setIsEditing(true)}
+          disabled={isSaving}
+          onClick={() =>
+            save({
+              status: "want_to_read",
+              percentComplete: 0,
+              rating: null,
+              review: null,
+            })
+          }
           className="w-fit rounded-full bg-primary px-4 py-2 text-sm font-bold text-white"
         >
-          + Add to your list
+          {isSaving ? "Adding..." : "+ Add to My shelf"}
         </button>
       )}
 

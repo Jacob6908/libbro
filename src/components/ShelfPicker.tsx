@@ -51,7 +51,7 @@ export default function ShelfPicker({ bookId }: { bookId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-        Shelves
+        Add to profile shelves
       </p>
       <div className="flex flex-wrap gap-2">
         {customShelves.map((shelf) => {

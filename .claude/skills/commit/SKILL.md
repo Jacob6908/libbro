@@ -69,9 +69,9 @@ speculative rules for things that aren't present.
   to avoid re-sweeping in anything just excluded).
 - Draft a commit message following this repo's existing style (check the
   `git log` output from step 1): concise, focused on *why* over *what*.
-- Commit with the message via a heredoc, ending with the
-  `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>` trailer, per the
-  standard commit protocol.
+- Commit with the message via a heredoc. Do not add a `Co-Authored-By`
+  trailer or any other Claude/Anthropic attribution — the user is the
+  sole author on this repo's commits and PRs.
 - Run `git status` after to confirm a clean result.
 
 ### 5. Report back

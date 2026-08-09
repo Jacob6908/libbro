@@ -1,6 +1,6 @@
 ---
 status: implemented
-last-reviewed: 2026-07-29
+last-reviewed: 2026-08-07
 ---
 
 # Book metadata import
@@ -14,10 +14,20 @@ an abstraction that doesn't hardcode the vendor throughout the app (see
 ## User behavior
 
 On `/books`, typing a query (2+ characters, debounced) shows merged
-results: instant matches from the local Postgres cache
-(`books.search_vector` full-text search) plus live Google Books results.
-Clicking any result imports it into the local cache if not already there,
-then navigates to its detail page.
+results as a five-per-row bookshelf grid (`BookShelfCover`): each cover
+sits on its own walnut-wood shelf ledge, title/author caption below.
+Results merge instant matches from the local Postgres cache
+(`books.search_vector` full-text search) with live Google Books results
+(the provider now tries up to three query variants — exact phrase,
+per-significant-term, and raw — merged/deduped; see `architecture.md`).
+The merged list is ranked client-side by title/author match quality
+(exact > prefix > phrase > partial token match), not by which source
+returned a result first — see `architecture.md`'s "Search result
+ranking". Clicking any result imports it into the local cache if not
+already there, then navigates to its detail page. The query itself
+lives in the URL's `q` param (not just local state), so navigating to a
+book and back restores the same search instead of resetting to a blank
+box.
 
 ## Requirements
 
@@ -75,7 +85,10 @@ its own metadata cache table.
 
 Implemented. `src/services/metadata/`, `src/api/bookImport.ts`,
 `src/api/bookMapping.ts`, `src/lib/genreMapping.ts`,
-`src/hooks/useBookSearch.ts`, `src/pages/BookSearch.tsx`.
+`src/hooks/useBookSearch.ts`, `src/pages/BookSearch.tsx`,
+`src/components/BookShelfCover.tsx`, `src/components/BookShelfCover.css`
+(grid/shelf presentation layer, added 2026-07-31 — the search/import
+logic above is unchanged by this).
 
 ## Open questions
 

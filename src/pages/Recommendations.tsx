@@ -1,17 +1,61 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
-import { useRecommendations } from "../hooks/useRecommendations";
-import BookCoverCard from "../components/BookCoverCard";
+import { useRecommendationCategories } from "../hooks/useRecommendations";
+import RecommendationShelfRow from "../components/RecommendationShelfRow";
+import type { RecommendationCategory } from "../services/recommendations";
+
+const BOOKS_PER_PREVIEW_ROW = 10;
+const MIN_SHOWN = 3;
+const MAX_SHOWN = 4;
+
+function pickRandomCategories(
+  categories: RecommendationCategory[],
+  min: number,
+  max: number
+): RecommendationCategory[] {
+  const count = Math.min(
+    categories.length,
+    Math.floor(Math.random() * (max - min + 1)) + min
+  );
+  const shuffled = [...categories].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
 
 export default function Recommendations() {
-  const { data: books, isLoading, error } = useRecommendations(30);
+  const {
+    data: categories,
+    isLoading,
+    error,
+  } = useRecommendationCategories(BOOKS_PER_PREVIEW_ROW);
+
+  // Picked once per page visit (guarded by the ref, not re-rolled on a
+  // background refetch of the same cached data) so the shown rows stay
+  // stable while the user is on the page but change on the next visit.
+  const [shown, setShown] = useState<RecommendationCategory[] | null>(null);
+  const hasPickedRef = useRef(false);
+
+  useEffect(() => {
+    if (categories && !hasPickedRef.current) {
+      hasPickedRef.current = true;
+      setShown(pickRandomCategories(categories, MIN_SHOWN, MAX_SHOWN));
+    }
+  }, [categories]);
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-8">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Recommended for you</h1>
-        <Link to="/profile" className="text-sm text-primary underline">
-          Edit genre preferences
-        </Link>
+        <div className="flex items-center gap-5">
+          <Link to="/profile" className="text-sm text-primary underline">
+            Edit genre preferences
+          </Link>
+          <Link
+            to="/recommendations/all"
+            className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
+          >
+            View all recommended
+          </Link>
+        </div>
       </div>
 
       {isLoading && (
@@ -22,29 +66,22 @@ export default function Recommendations() {
           Something went wrong loading recommendations.
         </p>
       )}
-      {!isLoading && books && books.length === 0 && (
+      {!isLoading && categories && categories.length === 0 && (
         <p className="text-sm text-gray-500">
           No recommendations yet - search for a few books and add them to your
           list to get started.
         </p>
       )}
 
-      <ul className="flex flex-col gap-2">
-        {books?.map((book) => (
-          <li key={book.id}>
-            <Link
-              to={`/books/${book.id}`}
-              className="flex items-center gap-3 rounded border bg-white px-3 py-2"
-            >
-              <BookCoverCard
-                title={book.title}
-                authors={book.authors}
-                coverImageUrl={book.cover_image_url}
-              />
-            </Link>
-          </li>
+      <div className="flex flex-col gap-8">
+        {shown?.map((category) => (
+          <RecommendationShelfRow
+            key={category.id}
+            title={category.title}
+            books={category.books}
+          />
         ))}
-      </ul>
+      </div>
     </main>
   );
 }

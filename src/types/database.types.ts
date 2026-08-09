@@ -77,3 +77,19 @@ export interface ListEntry {
   created_at: string;
   updated_at: string;
 }
+
+export interface Shelf {
+  id: string;
+  profile_id: string;
+  title: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ShelfBook {
+  shelf_id: string;
+  book_id: string;
+  position: number;
+  added_at: string;
+}

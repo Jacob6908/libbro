@@ -2,6 +2,7 @@ import { useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getBookById } from "../services/supabase/books";
 import ListEntryEditor from "../components/ListEntryEditor";
+import ShelfPicker from "../components/ShelfPicker";
 import SimilarBooks from "../components/SimilarBooks";
 
 export default function BookDetail() {
@@ -22,7 +23,7 @@ export default function BookDetail() {
   }
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-8">
+    <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8">
       <div className="flex gap-4">
         {book.cover_image_url ? (
           <img
@@ -51,7 +52,13 @@ export default function BookDetail() {
           {book.description}
         </p>
       )}
-      <ListEntryEditor bookId={book.id} pageCount={book.page_count} />
+      <ListEntryEditor
+        bookId={book.id}
+        pageCount={book.page_count}
+        title={book.title}
+        authors={book.authors}
+      />
+      <ShelfPicker bookId={book.id} />
       <SimilarBooks bookId={book.id} />
     </main>
   );

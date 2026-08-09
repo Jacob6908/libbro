@@ -1,14 +1,7 @@
 import { Link } from "react-router";
 import BookCoverCard from "./BookCoverCard";
 import type { ListEntryWithBook } from "../services/supabase/listEntries";
-
-const STATUS_LABELS: Record<string, string> = {
-  want_to_read: "Want to read",
-  reading: "Reading",
-  completed: "Completed",
-  on_hold: "On hold",
-  dropped: "Dropped",
-};
+import { STATUS_LABELS } from "../lib/statusColors";
 
 export default function ListEntryRow({ entry }: { entry: ListEntryWithBook }) {
   return (

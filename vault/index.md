@@ -4,22 +4,49 @@ Entry point for `libbro`'s knowledge base. Documents durable project
 knowledge that would be hard or risky to rediscover from the code alone —
 it does not duplicate the codebase or log every action taken here.
 
-**State as of this audit (2026-07-29):** v1 (auth, book search via Google
+**State as of this audit (2026-08-09):** v1 (auth, book search via Google
 Books, per-book reading tracking, genre-preference-based recommendations,
 home dashboard/list view) is built and merged to `main` on GitHub
 (`Jacob6908/libbro`, public). Since then, a persistent nav bar, real
-avatar upload with cropping, and a floating word-shelf genre-preference
-modal (replacing the old Meh/Like/Love button list) have shipped and
-merged; local `main` is currently behind `origin/main` by that last merge
-and needs syncing per `runbooks/git-workflow.md`. Most recently, the
-genre palette was promoted to the app's first real visual theme (tinted
-page background, white surfaces, one primary accent) — committed on
-`production` but not yet pushed/opened as a PR. See
-`working/issho-study.md` for the read-only study of the reference app
-`issho` that informed the original choices, `decisions/` for the specific
-tradeoffs made, and `runbooks/git-workflow.md` for how changes get from
-the `production` branch into `main` (now partially automated by the
-`/ship` skill).
+avatar upload with cropping, a floating word-shelf genre-preference modal,
+the genre palette promoted to the app's primary visual theme, a
+bookshelf-grid search redesign, search relevance ranking, and
+Netflix-style categorized recommendations have all shipped to
+`production` (PR #4, PR #5; #6 was closed unmerged and folded directly
+into `production`, confirming it remains the one working branch — see
+`runbooks/git-workflow.md`, unchanged). All of that is open as **PR #7**
+into `main`, not yet merged; local `main` is still 7 commits behind
+`origin/main` and needs syncing per `runbooks/git-workflow.md` once PR #7
+lands. Most recently, the standalone `/my-list` page was folded into
+`/profile`, and — the biggest single change so far — **user-curated
+bookshelves** were added, plus a read-only `/u/:username` view of
+another signed-in user's profile. This shipped in two fast iterations
+the same day: first with 5 default shelves auto-synced to reading status
+(`decisions/ADR-007-custom-bookshelves-and-profile-visibility.md`), then
+reworked hours later, after seeing it running, into a fully flat model —
+no default/custom distinction, one auto-seeded "My shelf" per profile,
+reading-status tracking kept but made completely independent of
+shelving (`decisions/ADR-008-flat-shelves-no-default-status-shelves.md`,
+current; `specs/bookshelves.md` describes the shipped behavior). Along
+the way a real bug (missing table-level `GRANT`s on the new tables,
+same class as a v1-era `book_genres` incident) was caught and fixed via
+browser testing — see `quality.md`. This is still a real product-
+direction shift on top of everything above: profiles are now visible to
+other signed-in users, narrowing (not removing) the "no social features"
+non-goal. Required live-schema changes applied directly against the
+Supabase project per `decisions/ADR-002` (current shape: `shelves`,
+`shelf_books` — the `public_reading_status` view from the first
+iteration was later dropped, see ADR-008). Verified end-to-end
+(lint/typecheck/build + two rounds of a background `/quality-check`
+subagent's browser-driven pass, including disposable-account tests of
+the signup-seeding trigger), committed to `production` alongside this
+vault reconciliation, and not yet pushed to `origin/production` as of
+this line being written — check `git log`/`git status` before assuming
+it's landed. See `working/issho-study.md`
+for the read-only study of the reference app `issho` that informed the
+original choices, `decisions/` for the specific tradeoffs made, and
+`runbooks/git-workflow.md` for how changes get from the working branch
+into `main` (partially automated by the `/ship` skill).
 
 ## Documents
 
@@ -28,23 +55,34 @@ the `production` branch into `main` (now partially automated by the
 - [`architecture.md`](architecture.md) — stack, directory layout,
   database schema (live-verified — **not in git**, see ADR-002), auth
   flow, routing/layout, book-metadata integration, avatar upload,
-  recommendation engine, security boundaries.
+  bookshelves, recommendation engine, security boundaries.
 - [`quality.md`](quality.md) — install/dev/lint/typecheck/build commands,
-  each re-verified during this audit; no test suite exists (deliberate).
+  each re-verified during this audit; the new `/quality-check` skill for
+  background browser-driven verification; no automated test suite exists
+  (deliberate).
 - [`specs/`](specs/) — `book-metadata-import.md`, `reading-tracking.md`,
-  `recommendations.md`, `avatar-upload.md`, `genre-preferences.md`. Auth
-  and the home/list/nav views are covered in `architecture.md` rather
-  than duplicated into specs, since they're straightforward CRUD/UI
-  without much non-obvious behavior.
-- [`decisions/`](decisions/) — six ADRs: the five major choices made
+  `recommendations.md`, `avatar-upload.md`, `genre-preferences.md`,
+  `bookshelves.md`. Auth and the home/nav views are covered in
+  `architecture.md` rather than duplicated into specs, since they're
+  straightforward CRUD/UI without much non-obvious behavior.
+- [`decisions/`](decisions/) — eight ADRs: the five major choices made
   building v1 (Supabase as the whole backend, dashboard-managed schema,
   Google Books behind a provider interface, content-based-only
-  recommendations, deferring series/volume support), plus
+  recommendations, deferring series/volume support),
   `ADR-006-genre-palette-as-primary-theme.md` for the app's first
-  color/visual-theme system. (The nav bar, avatar upload, and
-  genre-preference modal itself were routine feature additions following
-  existing decisions, not new architectural tradeoffs — documented in
-  `architecture.md`/`specs/` instead of new ADRs. Whether to keep
+  color/visual-theme system, and the two newest, same-day ADRs covering
+  bookshelves: `ADR-007-custom-bookshelves-and-profile-visibility.md`
+  (**superseded** in part — kept for the historical record, see its own
+  header) introduced shelves and made profiles viewable by other
+  signed-in users; `ADR-008-flat-shelves-no-default-status-shelves.md`
+  (current) replaced its default/custom shelf model with a flat one.
+  Together they narrow (but don't remove) the "no social features"
+  non-goal. (The nav bar, avatar upload, genre-preference modal,
+  bookshelf-grid search redesign, search relevance ranking, categorized
+  recommendations, and folding `/my-list` into `/profile` were all
+  routine feature additions/refinements following existing decisions,
+  not new architectural tradeoffs — documented in `architecture.md`/
+  `specs/` instead of new ADRs. Whether to keep
   `profile_genre_preferences.weight` long-term was discussed but not
   decided — see `working/open-questions.md`, not an ADR, since nothing
   was actually settled there.)

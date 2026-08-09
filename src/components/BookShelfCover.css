@@ -1,0 +1,178 @@
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  column-gap: 2rem;
+  row-gap: 3rem;
+}
+
+@media (max-width: 860px) {
+  .shelf-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .shelf-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.shelf-card-btn {
+  /* Native <button> elements keep an internal content-centering behavior
+     that a plain `display: block` doesn't fully override — a taller grid
+     row (from a neighbor's wrapped title) was centering each button's
+     content instead of pinning it to the top, so covers whose caption
+     happened to fit on one line sat visibly lower than a 2-line one.
+     Explicit flex + align-items/justify-content: flex-start pins every
+     card to the top regardless of its own or its row-mates' caption
+     height. */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.shelf-card-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.shelf-card-btn:focus-visible .shelf-card-cover {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.shelf-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+}
+
+/* Fixed aspect ratio (not the source image's native one) is what keeps
+   every cover — and its ledge — level with its neighbors in a row,
+   regardless of how the real cover art or a text-only placeholder
+   naturally sizes. The image is absolutely positioned (inset: 0) rather
+   than a percentage-height in-flow child: a plain `height: 100%` on an
+   <img> doesn't reliably resolve against a parent whose height comes
+   only from `aspect-ratio` — it falls back to the image's own intrinsic
+   ratio instead, which is what produced covers of different heights
+   depending on each book's real cover art proportions.
+*/
+.shelf-card-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  transition: transform 0.15s ease;
+}
+
+.shelf-card-btn:hover .shelf-card-cover {
+  transform: translateY(-3px);
+}
+
+.shelf-card-image,
+.shelf-card-placeholder {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: 0 10px 16px -12px rgba(43, 39, 31, 0.55);
+}
+
+.shelf-card-placeholder {
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-page));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.shelf-card-placeholder-title {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.3;
+  color: var(--color-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Walnut wood ledge, one per book. The highlight sliver along the top
+   edge is what reads as catching light instead of a flat gradient block. */
+.shelf-card-cover::after {
+  content: "";
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  bottom: -9px;
+  height: 11px;
+  border-radius: 0 0 2px 2px;
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 0, transparent 2px),
+    linear-gradient(to bottom, #8a6a4d, #6b4f36);
+  box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.4);
+}
+
+.shelf-card-caption {
+  margin-top: 1rem;
+}
+
+.shelf-card-title {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: var(--color-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.shelf-card-author {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.shelf-card-badge {
+  margin-top: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--color-ink) 70%, transparent);
+}
+
+.shelf-card-badge-swatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf-card-cover {
+    transition: none;
+  }
+}

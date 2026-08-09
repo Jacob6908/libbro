@@ -20,6 +20,7 @@ export function useListEntry(bookId: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const queryKey = ["list_entries", user?.id, bookId];
+  const allEntriesQueryKey = ["list_entries", "all", user?.id];
 
   const entryQuery = useQuery({
     queryKey,
@@ -52,6 +53,7 @@ export function useListEntry(bookId: string) {
     },
     onSuccess: (entry) => {
       queryClient.setQueryData(queryKey, entry);
+      queryClient.invalidateQueries({ queryKey: allEntriesQueryKey });
     },
   });
 
@@ -59,6 +61,7 @@ export function useListEntry(bookId: string) {
     mutationFn: () => deleteListEntry(user!.id, bookId),
     onSuccess: () => {
       queryClient.setQueryData(queryKey, null);
+      queryClient.invalidateQueries({ queryKey: allEntriesQueryKey });
     },
   });
 

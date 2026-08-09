@@ -39,38 +39,59 @@ export default function ListEntryModal({
   // derived from one another on every keystroke) so typing a page number
   // doesn't get corrupted by a lossy percent round-trip mid-edit — only
   // converted to `percentComplete` once, at save time.
-  const [page, setPage] = useState<number>(
-    pageCount ? Math.round((initialPercent / 100) * pageCount) : 0
+  const [page, setPage] = useState<string>(
+    pageCount ? String(Math.round((initialPercent / 100) * pageCount)) : "0"
   );
-  const [percent, setPercent] = useState<number>(initialPercent);
+  const [percent, setPercent] = useState<string>(String(initialPercent));
   const [rating, setRating] = useState<number | null>(entry?.rating ?? null);
   const [review, setReview] = useState(entry?.review ?? "");
 
   const showProgress = PROGRESS_STATUSES.includes(status);
+  const pageValue = page === "" ? 0 : Number(page);
+  const percentValue = percent === "" ? 0 : Number(percent);
   const progressPercent = pageCount
     ? pageCount > 0
-      ? Math.round((page / pageCount) * 100)
+      ? Math.round((pageValue / pageCount) * 100)
       : 0
-    : percent;
+    : percentValue;
 
   const handleStatusChange = (next: ReadingStatus) => {
+    const wasCompleted = status === "completed";
+
     setStatus(next);
     if (next === "completed") {
-      if (pageCount) setPage(pageCount);
-      setPercent(100);
+      if (pageCount) setPage(String(pageCount));
+      setPercent("100");
     } else if (next === "want_to_read") {
-      setPage(0);
-      setPercent(0);
+      setPage("0");
+      setPercent("0");
+    } else if (wasCompleted) {
+      setPage("0");
+      setPercent("0");
     }
   };
 
-  const handlePageChange = (value: number) => {
+  const handlePageChange = (value: string) => {
     if (!pageCount) return;
-    setPage(Math.max(0, Math.min(pageCount, value)));
+    if (value === "") {
+      setPage("");
+      return;
+    }
+
+    const next = Number(value);
+    if (Number.isNaN(next)) return;
+    setPage(String(Math.max(0, Math.min(pageCount, next))));
   };
 
-  const handlePercentChange = (value: number) => {
-    setPercent(Math.max(0, Math.min(100, value)));
+  const handlePercentChange = (value: string) => {
+    if (value === "") {
+      setPercent("");
+      return;
+    }
+
+    const next = Number(value);
+    if (Number.isNaN(next)) return;
+    setPercent(String(Math.max(0, Math.min(100, next))));
   };
 
   return (
@@ -138,9 +159,7 @@ export default function ListEntryModal({
                     min={0}
                     max={pageCount}
                     value={page}
-                    onChange={(event) =>
-                      handlePageChange(Number(event.target.value))
-                    }
+                    onChange={(event) => handlePageChange(event.target.value)}
                     className="w-24 rounded border px-2 py-1"
                   />
                   <span className="text-gray-500">of {pageCount} pages</span>
@@ -153,7 +172,7 @@ export default function ListEntryModal({
                     max={100}
                     value={percent}
                     onChange={(event) =>
-                      handlePercentChange(Number(event.target.value))
+                      handlePercentChange(event.target.value)
                     }
                     className="w-24 rounded border px-2 py-1"
                   />

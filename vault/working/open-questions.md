@@ -45,6 +45,29 @@ Answer these with real evidence when it appears — don't guess.
   database grant) — none of them would be caught automatically on a
   future change without some form of persisted test.
 
+## Product — bookshelves
+
+- **Should shelves get a real reordering UI?** `reorderShelves` exists in
+  `services/supabase/shelves.ts` and `useShelves`, but nothing in
+  `Profile.tsx` calls it — shelves display in a fixed `position` order
+  with no drag/up-down control. Why it matters: it's built but inert,
+  the same "finished at the data layer, not wired to UI" state
+  `getRecommendationsForUser` is in below — someone should decide
+  whether to finish wiring it up or remove it until it's needed.
+- **Should adding a book to a custom shelf eventually work from the
+  shelf/profile view itself** (a search-and-add picker), not just from
+  that book's own detail page? Shipped as a deliberate v1 scope cut (see
+  `specs/bookshelves.md`) reusing the page where a book is already open.
+  Why it matters: the current flow requires already having found the
+  book via `/books` first; a from-the-shelf picker would let a user
+  build out a shelf without leaving `/profile`, at the cost of new UI.
+- **Should `/u/:username` ever become discoverable** (a user
+  search/directory), rather than only reachable by already knowing a
+  username or following the "preview" link from your own profile? No
+  such feature exists per the "no social features" non-goal in
+  `product.md`; whether read-only shelf visibility eventually implies
+  wanting a way to find other users is undecided.
+
 ## Product
 
 - **Should `getRecommendationsForUser`/`useRecommendations` (the

@@ -89,9 +89,33 @@ for this version (same choice the reference app `issho` made). See
 ## Database schema / RLS
 
 No CLI command exists for this — schema and RLS policies are applied by
-hand via the Supabase SQL editor (dashboard-managed by deliberate choice,
-see `decisions/ADR-002-dashboard-managed-schema.md`). There is nothing to
-run locally to "check" the schema; the closest verification available is
-exercising the app end-to-end against the live project, which is how the
-one real grant bug found during the build (`book_genres` missing its
-`DELETE` grant) was actually caught.
+hand via the Supabase SQL editor, or directly via the `mcp__supabase__*`
+tools (`apply_migration`/`execute_sql`) when working through Claude Code —
+either way it's dashboard/live-project-managed by deliberate choice, see
+`decisions/ADR-002-dashboard-managed-schema.md`. There is nothing to run
+locally to "check" the schema; the closest verification available is
+exercising the app end-to-end against the live project, plus
+`mcp__supabase__get_advisors` (both `security` and `performance`) right
+after any schema change.
+
+**This exact bug class has now happened twice**: `book_genres` was
+missing its `DELETE` grant during the v1 build, and the new `shelves`/
+`shelf_books` tables (added for the custom-bookshelves feature, see
+`specs/bookshelves.md`) were created with correct RLS policies but no
+table-level `GRANT` to `authenticated` at all, which made every request
+fail with a `403` regardless of the RLS policies being right — RLS only
+narrows what a grantee can see/do, it doesn't substitute for the
+underlying SQL grant. Caught the same way both times: browser-driven
+verification, not lint/typecheck/build, and not `get_advisors` either (it
+flags missing RLS, not missing grants). **Any new table created via raw
+`create table` DDL needs an explicit `grant select/insert/update/delete
+... to authenticated` — Supabase's dashboard table editor does this
+automatically, but raw SQL/migrations do not.**
+
+## Visual/browser verification
+
+Use the `/quality-check` skill to run lint/typecheck/build plus a
+browser-driven pass against the running dev server in a background
+subagent, so other work (vault reconciliation, the next implementation
+step) can continue in parallel instead of blocking on it. See
+`.claude/skills/quality-check/SKILL.md`.

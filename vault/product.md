@@ -30,15 +30,27 @@ these — treat as open until stated.
    hold / dropped), a 0–100% progress slider, a 1–5 star rating, and a
    private text note, from the book's detail page (`BookDetail.tsx`,
    `components/ListEntryEditor.tsx`).
-4. **Browse your list** — `/my-list`, filterable by status tab
-   (`MyList.tsx`).
-5. **Edit profile** — username, bio, and an avatar photo (upload + crop
+4. **Browse and organize your books** — `/profile` shows the signed-in
+   user's own books as a bookshelf grid, filterable by shelf: the 5
+   default shelves (want to read / reading / completed / on hold /
+   dropped, auto-derived from `list_entries.status` — same tracking data
+   as before, just presented as shelves) plus any number of user-created
+   custom shelves with editable titles, which can hold any book
+   (tracked or not) added from that book's detail page. See
+   `specs/bookshelves.md`.
+5. **View another user's profile** — `/u/:username` shows the same
+   shelf-grid presentation for any other signed-in user, read-only (no
+   edit controls, and never their private review notes). See
+   `specs/bookshelves.md`.
+6. **Edit profile** — username, bio, and an avatar photo (upload + crop
    to a fixed circular size, Instagram-style — `components/
    AvatarCropModal.tsx`), plus genre preferences across a curated
    24-genre taxonomy, picked in a floating tap-to-highlight modal
    (`components/GenrePreferencePicker.tsx`,
-   `components/GenrePreferenceModal.tsx`), on the profile page.
-6. **Get recommendations** — a Netflix-style feed of named category rows
+   `components/GenrePreferenceModal.tsx`) — reached via an "Edit
+   profile" button on `/profile` (`components/ProfileEditModal.tsx`),
+   separate from the shelf-browsing view itself.
+7. **Get recommendations** — a Netflix-style feed of named category rows
    (e.g. "Horror for you", "Because you loved X", "Longer than you'd
    usually read") built from genre preferences and inferred taste from
    ratings. `/recommendations` shows a random 3-4 rows that change on

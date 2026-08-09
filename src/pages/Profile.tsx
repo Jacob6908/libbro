@@ -4,40 +4,90 @@ import { useAuth } from "../hooks/useAuth";
 import { useProfile } from "../hooks/useProfile";
 import { useMyList } from "../hooks/useMyList";
 import { useShelves } from "../hooks/useShelves";
-import { useShelfBooks } from "../hooks/useShelfBooks";
+import { useShelfBooks, useAllShelvedBooks } from "../hooks/useShelfBooks";
 import AvatarImage from "../components/AvatarImage";
-import BookShelfCover from "../components/BookShelfCover";
+import ShelfRow from "../components/ShelfRow";
 import ProfileEditModal from "../components/ProfileEditModal";
 import GenrePreferencePicker from "../components/GenrePreferencePicker";
 import { STATUS_COLORS, STATUS_LABELS } from "../lib/statusColors";
-import "../components/BookShelfCover.css";
+import type { Book, Shelf } from "../types/database.types";
+import type { ListEntryWithBook } from "../services/supabase/listEntries";
+
+function renderStatusBadge(entry: ListEntryWithBook | undefined) {
+  if (!entry) return null;
+  return (
+    <span className="shelf-card-badge">
+      <span
+        className="shelf-card-badge-swatch"
+        style={{ background: STATUS_COLORS[entry.status] }}
+      />
+      {STATUS_LABELS[entry.status]}
+      {entry.status === "reading" && ` · ${entry.percent_complete}%`}
+    </span>
+  );
+}
+
+/** One real shelf's row — fetches its own books so the number of hook
+ * calls stays fixed regardless of how many shelves a profile has. */
+function ShelfSection({
+  shelf,
+  isEditMode,
+  entryByBookId,
+  onRename,
+  onDelete,
+}: {
+  shelf: Shelf;
+  isEditMode: boolean;
+  entryByBookId: Map<string, ListEntryWithBook>;
+  onRename: (shelfId: string, title: string) => void;
+  onDelete: (shelfId: string) => void;
+}) {
+  const { shelfBooks, removeBook } = useShelfBooks(shelf.id);
+  const books = shelfBooks.map((sb) => sb.book);
+
+  return (
+    <ShelfRow
+      title={shelf.title}
+      isEditMode={isEditMode}
+      books={books}
+      badgeFor={(bookId) => renderStatusBadge(entryByBookId.get(bookId))}
+      onRename={(title) => onRename(shelf.id, title)}
+      onDelete={() => onDelete(shelf.id)}
+      onRemoveBook={(bookId) => removeBook(bookId)}
+      emptyMessage="Nothing on this shelf yet."
+    />
+  );
+}
 
 export default function Profile() {
   const { user } = useAuth();
   const { profile, isLoading: isProfileLoading } = useProfile();
-  const { entries, isLoading: isListLoading } = useMyList();
+  const { entries } = useMyList();
+  const { books: shelvedBooks } = useAllShelvedBooks(user?.id);
   const { shelves, createShelf, renameShelf, deleteShelf } = useShelves(
     user?.id
   );
-  const [selectedShelfId, setSelectedShelfId] = useState<string | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [isAddingShelf, setIsAddingShelf] = useState(false);
   const [newShelfTitle, setNewShelfTitle] = useState("");
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [renameValue, setRenameValue] = useState("");
 
-  const selectedShelf =
-    shelves.find((s) => s.id === selectedShelfId) ?? shelves[0] ?? null;
-
-  const { shelfBooks, removeBook } = useShelfBooks(selectedShelf?.id);
-
-  // Tracking (status/progress/rating/notes) is independent of shelving —
-  // this just lets a shelved book that also happens to be tracked show its
-  // status badge, same visual language as before.
   const entryByBookId = useMemo(
     () => new Map(entries.map((entry) => [entry.book_id, entry])),
     [entries]
   );
+
+  // The "All Books" safety net: every book tracked (any status) or
+  // shelved anywhere, deduplicated — so removing a book from its only
+  // shelf never makes it disappear from the profile entirely.
+  const allBooks = useMemo(() => {
+    const byId = new Map<string, Book>();
+    entries.forEach((entry) => byId.set(entry.book_id, entry.book));
+    shelvedBooks.forEach((book) => {
+      if (!byId.has(book.id)) byId.set(book.id, book);
+    });
+    return [...byId.values()];
+  }, [entries, shelvedBooks]);
 
   const completedThisYear = useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -49,20 +99,6 @@ export default function Profile() {
     ).length;
   }, [entries]);
 
-  const startRename = () => {
-    if (!selectedShelf) return;
-    setRenameValue(selectedShelf.title);
-    setIsRenaming(true);
-  };
-
-  const submitRename = () => {
-    const title = renameValue.trim();
-    if (selectedShelf && title) {
-      renameShelf({ shelfId: selectedShelf.id, title });
-    }
-    setIsRenaming(false);
-  };
-
   const submitNewShelf = () => {
     const title = newShelfTitle.trim();
     if (title) createShelf(title);
@@ -71,19 +107,22 @@ export default function Profile() {
   };
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+    <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
           <AvatarImage url={profile?.avatar_url ?? null} size={56} />
           <div>
             <h1 className="text-2xl font-semibold">
               {isProfileLoading
-                ? "Your books"
-                : `${profile?.username ?? "Your"}'s books`}
+                ? "Your Library"
+                : `${profile?.username ?? "Your"}'s Library`}
             </h1>
             <p className="text-sm text-gray-500">
               {entries.length} tracked · {completedThisYear} finished this year
             </p>
+            <div className="mt-2">
+              <GenrePreferencePicker compact />
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -102,37 +141,42 @@ export default function Profile() {
           >
             ✎ Edit profile
           </button>
+          <button
+            type="button"
+            onClick={() => setIsEditMode((v) => !v)}
+            className={`rounded-full px-4 py-2 text-sm font-bold ${
+              isEditMode ? "bg-ink text-page" : "bg-primary text-white"
+            }`}
+          >
+            {isEditMode ? "Done" : "Edit Library"}
+          </button>
         </div>
       </div>
 
-      <GenrePreferencePicker />
+      <div className="flex flex-col gap-10">
+        <ShelfRow
+          title="All Books"
+          isAuto
+          isEditMode={isEditMode}
+          books={allBooks}
+          badgeFor={(bookId) => renderStatusBadge(entryByBookId.get(bookId))}
+          emptyMessage="Nothing here yet - search for a book to get started."
+        />
 
-      <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
-        <aside className="flex flex-col gap-3">
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">
-              Shelves
-            </h2>
-          </div>
-          <div className="flex flex-col gap-2">
-            {shelves.map((shelf) => (
-              <button
-                key={shelf.id}
-                type="button"
-                onClick={() => setSelectedShelfId(shelf.id)}
-                className={`rounded border bg-white px-4 py-3 text-left ${
-                  selectedShelf?.id === shelf.id
-                    ? "border-primary shadow-sm"
-                    : "border-gray-200"
-                }`}
-              >
-                <span className="block font-semibold">{shelf.title}</span>
-              </button>
-            ))}
-          </div>
+        {shelves.map((shelf) => (
+          <ShelfSection
+            key={shelf.id}
+            shelf={shelf}
+            isEditMode={isEditMode}
+            entryByBookId={entryByBookId}
+            onRename={(shelfId, title) => renameShelf({ shelfId, title })}
+            onDelete={(shelfId) => deleteShelf(shelfId)}
+          />
+        ))}
 
-          {isAddingShelf ? (
-            <div className="flex flex-col gap-2 rounded border border-dashed bg-white p-3">
+        {isEditMode &&
+          (isAddingShelf ? (
+            <div className="flex items-center gap-2 rounded-lg border border-dashed bg-white p-4">
               <input
                 autoFocus
                 type="text"
@@ -140,163 +184,38 @@ export default function Profile() {
                 onChange={(e) => setNewShelfTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitNewShelf()}
                 placeholder="Shelf title"
-                className="rounded border bg-white px-3 py-2 text-sm"
+                className="flex-1 rounded border bg-white px-3 py-2 text-sm"
               />
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={submitNewShelf}
-                  className="text-sm font-semibold text-primary"
-                >
-                  Add shelf
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAddingShelf(false);
-                    setNewShelfTitle("");
-                  }}
-                  className="text-sm text-gray-400"
-                >
-                  Cancel
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={submitNewShelf}
+                className="text-sm font-semibold text-primary"
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddingShelf(false);
+                  setNewShelfTitle("");
+                }}
+                className="text-sm text-gray-400"
+              >
+                Cancel
+              </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={() => setIsAddingShelf(true)}
-              className="flex items-center gap-2 rounded border border-dashed bg-white px-4 py-3 text-left text-sm font-semibold text-gray-500 hover:border-primary hover:text-primary"
+              className="flex items-center gap-3 rounded-lg border border-dashed bg-white px-5 py-4 text-left text-sm font-bold text-gray-500 hover:border-primary hover:text-primary"
             >
-              <span className="text-lg leading-none">+</span>
-              <span>Add shelf</span>
+              <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full border border-dashed border-current text-base">
+                +
+              </span>
+              Add a new shelf
             </button>
-          )}
-
-          {selectedShelf &&
-            (isRenaming ? (
-              <div className="flex flex-col gap-2 rounded border bg-white p-3">
-                <input
-                  autoFocus
-                  type="text"
-                  value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && submitRename()}
-                  className="rounded border bg-white px-3 py-2 text-sm"
-                />
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={submitRename}
-                    className="text-sm font-semibold text-primary"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsRenaming(false)}
-                    className="text-sm text-gray-400"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-start gap-2 text-sm">
-                <button
-                  type="button"
-                  onClick={startRename}
-                  className="text-gray-500 hover:text-primary"
-                >
-                  Rename selected shelf
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    deleteShelf(selectedShelf.id);
-                    setSelectedShelfId(null);
-                  }}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  Delete selected shelf
-                </button>
-              </div>
-            ))}
-        </aside>
-
-        <section className="flex min-w-0 flex-col gap-4">
-          {selectedShelf ? (
-            <>
-              <div>
-                <h2 className="text-xl font-semibold">{selectedShelf.title}</h2>
-                <p className="text-sm text-gray-500">
-                  Books you added to this shelf.
-                </p>
-              </div>
-
-              {shelfBooks.length === 0 && (
-                <p className="text-sm text-gray-500">
-                  Nothing on this shelf yet - add a book to it from the book's
-                  page.
-                </p>
-              )}
-              <div className="shelf-grid">
-                {shelfBooks.map(({ book }) => {
-                  const trackedEntry = entryByBookId.get(book.id);
-                  return (
-                    <Link
-                      key={book.id}
-                      to={`/books/${book.id}`}
-                      className="shelf-card-btn"
-                    >
-                      <BookShelfCover
-                        title={book.title}
-                        authors={book.authors}
-                        coverImageUrl={book.cover_image_url}
-                        badge={
-                          <>
-                            {trackedEntry && (
-                              <span className="shelf-card-badge">
-                                <span
-                                  className="shelf-card-badge-swatch"
-                                  style={{
-                                    background:
-                                      STATUS_COLORS[trackedEntry.status],
-                                  }}
-                                />
-                                {STATUS_LABELS[trackedEntry.status]}
-                                {trackedEntry.status === "reading" &&
-                                  ` · ${trackedEntry.percent_complete}%`}
-                              </span>
-                            )}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                removeBook(book.id);
-                              }}
-                              className="text-xs font-bold text-red-600 hover:text-red-800"
-                            >
-                              Remove from shelf
-                            </button>
-                          </>
-                        }
-                      />
-                    </Link>
-                  );
-                })}
-              </div>
-            </>
-          ) : (
-            !isListLoading && (
-              <p className="text-sm text-gray-500">
-                You don't have any shelves yet — add one to start organizing
-                your books.
-              </p>
-            )
-          )}
-        </section>
+          ))}
       </div>
 
       {isEditingProfile && (

@@ -120,3 +120,23 @@ export async function getShelfIdsForBook(
   if (error) throw error;
   return (data ?? []).map((row) => row.shelf_id);
 }
+
+/** Every distinct book across every one of a profile's shelves — the data
+ * source for the "All Books" safety-net row, so a book is never truly
+ * lost just because it was removed from its only shelf. */
+export async function getAllShelvedBooksForProfile(
+  profileId: string
+): Promise<Book[]> {
+  const { data, error } = await supabase
+    .from("shelf_books")
+    .select("book:books(*), shelves!inner(profile_id)")
+    .eq("shelves.profile_id", profileId);
+
+  if (error) throw error;
+
+  const seen = new Map<string, Book>();
+  for (const row of (data ?? []) as unknown as { book: Book }[]) {
+    if (row.book) seen.set(row.book.id, row.book);
+  }
+  return [...seen.values()];
+}

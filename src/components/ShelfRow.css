@@ -1,0 +1,187 @@
+.shelf-row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.auto-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--color-ink) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 15%, transparent);
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+}
+
+/* the shelf-level rename/delete cluster, fading in next to the title */
+.row-crud {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+  pointer-events: none;
+}
+.row-crud.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.row-icon-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 15%, transparent);
+  background: white;
+  color: color-mix(in srgb, var(--color-ink) 60%, transparent);
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.row-icon-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.row-icon-btn.danger:hover {
+  border-color: #a3402f;
+  color: #a3402f;
+}
+
+.shelf-row-rename {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.shelf-row-rename-input {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+  background: white;
+  color: var(--color-ink);
+}
+
+.shelf-row-empty {
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+  margin: 0;
+}
+
+.remove-badge {
+  margin-top: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #a3402f;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: fit-content;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.remove-badge.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* the book-silhouette "add to this shelf" slot at the end of a row —
+   visually present but intentionally inert until the add-book flow is
+   built; see the comment above its button in ShelfRow.tsx. */
+.add-slot {
+  flex: 0 0 132px;
+  /* Same fix as .shelf-card-btn in BookShelfCover.css: a native <button>
+     centers its content internally in a way plain `display: block` on
+     the child doesn't override, which showed up as the silhouette
+     drifting off-center whenever this button's box didn't exactly match
+     its content's natural size (e.g. the first, only item in an empty
+     shelf's row, stretched by the flex row's cross-axis). Explicit flex
+     + align-items/justify-content pins it top-left like every sibling
+     card instead. */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+.add-slot.is-visible {
+  opacity: 1;
+  cursor: pointer;
+}
+.add-slot-cover {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border: 2px dashed color-mix(in srgb, var(--color-primary) 45%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+.add-slot.is-visible:hover .add-slot-cover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-color: var(--color-primary);
+}
+.add-slot-cover::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 14%;
+  bottom: 14%;
+  width: 1px;
+  background: color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+.add-slot-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  color: var(--color-primary);
+}
+.add-slot-plus {
+  font-size: 1.7rem;
+  font-weight: 300;
+  line-height: 1;
+}
+.add-slot-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row-crud,
+  .remove-badge,
+  .add-slot,
+  .add-slot-cover {
+    transition: none;
+  }
+}

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addBookToShelf,
+  getAllShelvedBooksForProfile,
   getShelfBooks,
   removeBookFromShelf,
 } from "../services/supabase/shelves";
@@ -36,5 +37,20 @@ export function useShelfBooks(shelfId: string | undefined) {
     isAdding: addMutation.isPending,
     removeBook: removeMutation.mutate,
     isRemoving: removeMutation.isPending,
+  };
+}
+
+/** Every book across every one of a profile's shelves, deduplicated —
+ * powers the "All Books" safety-net row. */
+export function useAllShelvedBooks(profileId: string | undefined) {
+  const query = useQuery({
+    queryKey: ["shelf_books", "all-for-profile", profileId],
+    queryFn: () => getAllShelvedBooksForProfile(profileId!),
+    enabled: !!profileId,
+  });
+
+  return {
+    books: query.data ?? [],
+    isLoading: query.isLoading,
   };
 }

@@ -42,7 +42,7 @@ export default function Recommendations() {
   }, [categories]);
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8">
+    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Recommended for you</h1>
         <div className="flex items-center gap-5">

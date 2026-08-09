@@ -1,0 +1,61 @@
+.nav-inner {
+  height: 66px;
+}
+
+.nav-logo {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.nav-logo .tilt {
+  display: inline-block;
+  transform: rotate(-8deg);
+  color: var(--color-primary);
+}
+
+.nav-chip {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--chip-color) 45%, white);
+  color: color-mix(in srgb, var(--color-ink) 90%, transparent);
+  text-decoration: none;
+  opacity: 0.55;
+  transform: translateY(0);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.nav-chip:hover {
+  opacity: 0.8;
+}
+
+.nav-chip.active {
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px -8px rgba(43, 39, 31, 0.5);
+}
+
+.nav-signout {
+  font-size: 0.8rem;
+  color: color-mix(in srgb, var(--color-ink) 45%, transparent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nav-signout:hover {
+  color: var(--color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-chip {
+    transition: none;
+  }
+}

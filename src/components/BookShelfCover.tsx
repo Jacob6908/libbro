@@ -1,13 +1,17 @@
+import type { ReactNode } from "react";
 import "./BookShelfCover.css";
 
 export default function BookShelfCover({
   title,
   authors,
   coverImageUrl,
+  badge,
 }: {
   title: string;
   authors: string[];
   coverImageUrl?: string | null;
+  /** Optional status/progress badge rendered under the caption (e.g. on the profile grid). */
+  badge?: ReactNode;
 }) {
   return (
     <div className="shelf-card">
@@ -25,6 +29,7 @@ export default function BookShelfCover({
         {authors.length > 0 && (
           <p className="shelf-card-author">{authors.join(", ")}</p>
         )}
+        {badge}
       </div>
     </div>
   );

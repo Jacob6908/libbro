@@ -154,6 +154,23 @@
   overflow: hidden;
 }
 
+.shelf-card-badge {
+  margin-top: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--color-ink) 70%, transparent);
+}
+
+.shelf-card-badge-swatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shelf-card-cover {
     transition: none;

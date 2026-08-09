@@ -22,7 +22,7 @@ export default function BookDetail() {
   }
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-8">
+    <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8">
       <div className="flex gap-4">
         {book.cover_image_url ? (
           <img
@@ -51,7 +51,12 @@ export default function BookDetail() {
           {book.description}
         </p>
       )}
-      <ListEntryEditor bookId={book.id} pageCount={book.page_count} />
+      <ListEntryEditor
+        bookId={book.id}
+        pageCount={book.page_count}
+        title={book.title}
+        authors={book.authors}
+      />
       <SimilarBooks bookId={book.id} />
     </main>
   );

@@ -1,11 +1,12 @@
+import type { CSSProperties } from "react";
 import { Link, NavLink } from "react-router";
 import { useAuth } from "../hooks/useAuth";
+import "./NavBar.css";
 
 const LINKS = [
-  { to: "/books", label: "Search" },
-  { to: "/my-list", label: "My List" },
-  { to: "/recommendations", label: "Recommended" },
-  { to: "/profile", label: "Profile" },
+  { to: "/books", label: "Search", color: "#a9c5c2" }, // teal
+  { to: "/profile", label: "Your Books", color: "#e7caa6" }, // ochre
+  { to: "/recommendations", label: "Recommended", color: "#c4b2c6" }, // plum
 ];
 
 export default function NavBar() {
@@ -13,32 +14,31 @@ export default function NavBar() {
 
   return (
     <header className="border-b bg-white">
-      <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-        <Link to="/" className="text-lg font-semibold">
-          libbro
+      <div className="nav-inner mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4">
+        <Link to="/" className="nav-logo">
+          li<span className="tilt">b</span>bro
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
+        <nav className="flex items-center gap-2">
           {LINKS.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
+              style={{ "--chip-color": link.color } as CSSProperties}
               className={({ isActive }) =>
-                isActive
-                  ? "font-semibold text-primary"
-                  : "text-gray-600 hover:text-primary"
+                `nav-chip${isActive ? " active" : ""}`
               }
             >
               {link.label}
             </NavLink>
           ))}
-          <button
-            type="button"
-            onClick={() => signOut()}
-            className="text-gray-600 hover:text-primary"
-          >
-            Sign out
-          </button>
         </nav>
+        <button
+          type="button"
+          onClick={() => signOut()}
+          className="nav-signout justify-self-end"
+        >
+          Sign out
+        </button>
       </div>
     </header>
   );

@@ -25,4 +25,6 @@ Obsidian-compatible knowledge base. Start here:
 12. Never discard uncommitted user work.
 13. Ask for explicit approval before destructive, production-sensitive, or major architectural changes.
 
-Run `/vault-audit` after notable changes (new feature, architecture decision, dependency, or spec) to keep the vault reconciled with the codebase.
+Only run `/vault-audit` when the user explicitly invokes it. Don't
+proactively reconcile the vault after individual changes, features, or
+design decisions — wait to be asked.

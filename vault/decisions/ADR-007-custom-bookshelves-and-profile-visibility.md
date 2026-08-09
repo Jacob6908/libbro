@@ -1,7 +1,17 @@
 ---
-status: accepted
+status: superseded
 date: 2026-08-09
 ---
+
+> **Superseded 2026-08-09** by
+> `ADR-008-flat-shelves-no-default-status-shelves.md`, same day. The
+> "5 default status-linked shelves auto-synced with `list_entries.status`"
+> half of this decision was reversed within hours of shipping — kept here
+> unedited for the historical record of what v1 of this feature actually
+> was and why, per this vault's rule against rewriting accepted ADRs.
+> The "profiles are visible to other signed-in users" half of this
+> decision (the visibility/trust-boundary change) is still current; only
+> the shelf *data model* changed.
 
 # ADR-007: Custom bookshelves, and profiles become visible to other signed-in users
 

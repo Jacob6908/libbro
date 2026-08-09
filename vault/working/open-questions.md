@@ -54,7 +54,7 @@ Answer these with real evidence when it appears — don't guess.
   the same "finished at the data layer, not wired to UI" state
   `getRecommendationsForUser` is in below — someone should decide
   whether to finish wiring it up or remove it until it's needed.
-- **Should adding a book to a custom shelf eventually work from the
+- **Should adding a book to a shelf eventually work from the
   shelf/profile view itself** (a search-and-add picker), not just from
   that book's own detail page? Shipped as a deliberate v1 scope cut (see
   `specs/bookshelves.md`) reusing the page where a book is already open.

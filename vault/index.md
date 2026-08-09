@@ -18,22 +18,31 @@ into `production`, confirming it remains the one working branch — see
 into `main`, not yet merged; local `main` is still 7 commits behind
 `origin/main` and needs syncing per `runbooks/git-workflow.md` once PR #7
 lands. Most recently, the standalone `/my-list` page was folded into
-`/profile` (now a shelf-tab-based "Your Books" view with its own edit
-modal), and — the biggest single change so far — **custom, user-titled
-bookshelves** were added alongside the 5 existing status-based shelves,
-plus a read-only `/u/:username` view of another signed-in user's
-profile. This is a real product-direction shift (profiles are now
-visible to other users, narrowing the "no social features" non-goal —
-see `decisions/ADR-007-custom-bookshelves-and-profile-visibility.md` and
-`specs/bookshelves.md`) and required new live-schema objects (`shelves`,
-`shelf_books`, `public_reading_status` — see `architecture.md`), applied
-directly against the live Supabase project per `decisions/ADR-002`.
-Verified end-to-end (lint/typecheck/build + a background
-`/quality-check` subagent's browser-driven pass, including a disposable-
-account test of the new-signup shelf-seeding trigger), committed to
-`production` alongside this vault reconciliation, and not yet pushed to
-`origin/production` as of this line being written — check `git log`/
-`git status` before assuming it's landed. See `working/issho-study.md`
+`/profile`, and — the biggest single change so far — **user-curated
+bookshelves** were added, plus a read-only `/u/:username` view of
+another signed-in user's profile. This shipped in two fast iterations
+the same day: first with 5 default shelves auto-synced to reading status
+(`decisions/ADR-007-custom-bookshelves-and-profile-visibility.md`), then
+reworked hours later, after seeing it running, into a fully flat model —
+no default/custom distinction, one auto-seeded "My shelf" per profile,
+reading-status tracking kept but made completely independent of
+shelving (`decisions/ADR-008-flat-shelves-no-default-status-shelves.md`,
+current; `specs/bookshelves.md` describes the shipped behavior). Along
+the way a real bug (missing table-level `GRANT`s on the new tables,
+same class as a v1-era `book_genres` incident) was caught and fixed via
+browser testing — see `quality.md`. This is still a real product-
+direction shift on top of everything above: profiles are now visible to
+other signed-in users, narrowing (not removing) the "no social features"
+non-goal. Required live-schema changes applied directly against the
+Supabase project per `decisions/ADR-002` (current shape: `shelves`,
+`shelf_books` — the `public_reading_status` view from the first
+iteration was later dropped, see ADR-008). Verified end-to-end
+(lint/typecheck/build + two rounds of a background `/quality-check`
+subagent's browser-driven pass, including disposable-account tests of
+the signup-seeding trigger), committed to `production` alongside this
+vault reconciliation, and not yet pushed to `origin/production` as of
+this line being written — check `git log`/`git status` before assuming
+it's landed. See `working/issho-study.md`
 for the read-only study of the reference app `issho` that informed the
 original choices, `decisions/` for the specific tradeoffs made, and
 `runbooks/git-workflow.md` for how changes get from the working branch
@@ -56,21 +65,24 @@ into `main` (partially automated by the `/ship` skill).
   `bookshelves.md`. Auth and the home/nav views are covered in
   `architecture.md` rather than duplicated into specs, since they're
   straightforward CRUD/UI without much non-obvious behavior.
-- [`decisions/`](decisions/) — seven ADRs: the five major choices made
+- [`decisions/`](decisions/) — eight ADRs: the five major choices made
   building v1 (Supabase as the whole backend, dashboard-managed schema,
   Google Books behind a provider interface, content-based-only
   recommendations, deferring series/volume support),
   `ADR-006-genre-palette-as-primary-theme.md` for the app's first
-  color/visual-theme system, and
-  `ADR-007-custom-bookshelves-and-profile-visibility.md` for the newest
-  one — custom user-curated shelves and making profiles viewable by other
-  signed-in users, which narrows (but doesn't remove) the "no social
-  features" non-goal. (The nav bar, avatar upload, genre-preference
-  modal, bookshelf-grid search redesign, search relevance ranking,
-  categorized recommendations, and folding `/my-list` into `/profile`
-  were all routine feature additions/refinements following existing
-  decisions, not new architectural tradeoffs — documented in
-  `architecture.md`/`specs/` instead of new ADRs. Whether to keep
+  color/visual-theme system, and the two newest, same-day ADRs covering
+  bookshelves: `ADR-007-custom-bookshelves-and-profile-visibility.md`
+  (**superseded** in part — kept for the historical record, see its own
+  header) introduced shelves and made profiles viewable by other
+  signed-in users; `ADR-008-flat-shelves-no-default-status-shelves.md`
+  (current) replaced its default/custom shelf model with a flat one.
+  Together they narrow (but don't remove) the "no social features"
+  non-goal. (The nav bar, avatar upload, genre-preference modal,
+  bookshelf-grid search redesign, search relevance ranking, categorized
+  recommendations, and folding `/my-list` into `/profile` were all
+  routine feature additions/refinements following existing decisions,
+  not new architectural tradeoffs — documented in `architecture.md`/
+  `specs/` instead of new ADRs. Whether to keep
   `profile_genre_preferences.weight` long-term was discussed but not
   decided — see `working/open-questions.md`, not an ADR, since nothing
   was actually settled there.)

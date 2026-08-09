@@ -89,14 +89,12 @@ non-trivial schema work, since drift here is undetectable from git.
 | `books` | Durable cache of imported Google Books volumes, keyed by `(provider, external_id)` so a future metadata source swap doesn't require a schema change | `id`, `provider`, `external_id`, `title`, `authors[]`, `raw_categories[]`, `fetched_at` (TTL clock), `search_vector` (generated tsvector) |
 | `book_genres` | Normalized many-to-many replacing Google's freeform categories | `book_id`, `genre_id` |
 | `list_entries` | Per-user book tracking, one row per (user, book) — no series/season split | `user_id`, `book_id`, `status` (enum), `percent_complete`, `rating` (1-5), `review`, `started_at`, `finished_at` |
-| `shelves` | One row per shelf (default or custom), see "Bookshelves" below | `id`, `profile_id`, `title`, `status_key` (nullable enum, non-null only for the 5 default shelves), `position` |
-| `shelf_books` | Custom-shelf membership only — default shelves compute their contents live from `list_entries`, nothing is ever written here for them | `shelf_id`, `book_id`, `position`, `added_at` |
+| `shelves` | One row per shelf — flat, no default/custom distinction, see "Bookshelves" below | `id`, `profile_id`, `title`, `position` |
+| `shelf_books` | Shelf membership | `shelf_id`, `book_id`, `position`, `added_at` |
 
 `reading_status` enum: `want_to_read | reading | completed | dropped |
-on_hold`.
-
-`public_reading_status` is a **view**, not a table — see "Bookshelves"
-below for why it exists and how it works.
+on_hold`. Used only by `list_entries` (personal reading-status tracking,
+see `specs/reading-tracking.md`) — `shelves` has no relationship to it.
 
 ### RLS posture (verified live, not just intended)
 
@@ -114,15 +112,12 @@ below for why it exists and how it works.
   can't silently overwrite an existing mapping.
 - `shelves`, `shelf_books`: open SELECT to any authenticated user (same
   posture as `profiles` — shelves are meant to be seen by other users).
-  `shelves` INSERT/DELETE require `profile_id = auth.uid() AND status_key
-  IS NULL` (only custom shelves can be created/deleted by a user; the 5
-  default shelves are seeded once, server-side, and permanent); UPDATE
-  only requires ownership (renaming/reordering works on both kinds). A
-  `before update` trigger additionally blocks any change to `status_key`
-  regardless of RLS, since the default-shelf auto-sync design depends on
-  that column never drifting. `shelf_books` INSERT/UPDATE/DELETE require
-  the caller to own the parent shelf (checked via a subquery to
-  `shelves`). See `decisions/ADR-007-custom-bookshelves-and-profile-visibility.md`.
+  `shelves` INSERT/UPDATE/DELETE all just require `profile_id =
+  auth.uid()` — uniform across every shelf, since there's no default/
+  custom distinction to carve exceptions for (see "Bookshelves" below).
+  `shelf_books` INSERT/UPDATE/DELETE require the caller to own the
+  parent shelf (checked via a subquery to `shelves`). See
+  `decisions/ADR-008-flat-shelves-no-default-status-shelves.md`.
 - A real bug was found and fixed during the build: `book_genres` was
   missing its `DELETE` grant, which silently broke genre-linking on every
   import until caught by browser-driven testing (not by typecheck/lint).
@@ -135,44 +130,41 @@ below for why it exists and how it works.
   on every new table from now on, not just assuming RLS is the whole
   story.
 
-### Bookshelves (default + custom)
+### Bookshelves (flat, user-curated)
 
-Added 2026-08-09 (`decisions/ADR-007-custom-bookshelves-and-profile-visibility.md`,
-`specs/bookshelves.md`) to make the profile page the app's central,
-customizable, viewable-by-others surface it wasn't before.
+Added 2026-08-09, then reworked same-day to its current flat form —
+see `decisions/ADR-007-custom-bookshelves-and-profile-visibility.md`
+(superseded in part) and
+`decisions/ADR-008-flat-shelves-no-default-status-shelves.md` (current),
+plus `specs/bookshelves.md` for full behavior.
 
-- **Default shelves** (`shelves.status_key` non-null — one each for
-  `want_to_read`/`reading`/`completed`/`on_hold`/`dropped`) are seeded
-  once per profile (via `handle_new_user()` on signup, and a one-time
-  backfill for the 35 profiles that predated this feature) and stay
-  auto-synced with `list_entries.status` — moving a book between them
-  still happens through the existing `ListEntryEditor`/`ListEntryModal`
-  tracking UI, completely unchanged. Their `title` can still be renamed;
-  only `status_key` itself is immutable.
-- **Custom shelves** (`status_key IS NULL`) are user-created, arbitrarily
-  titled, and hold books via `shelf_books` independent of whether that
-  book is tracked in `list_entries` at all — pure curation. Added from a
+- **Every shelf is the same shape** — `id`, `profile_id`, `title`,
+  `position`. There is no default/custom distinction; `shelves` has no
+  relationship to `reading_status` at all.
+- **Every profile gets exactly one shelf, "My shelf," seeded
+  automatically** — via `handle_new_user()` on signup (and, for the 35
+  profiles that predated this feature, a one-time backfill that also
+  populated it with whatever they already had tracked in
+  `list_entries`). It is not special after creation: it can be renamed
+  or deleted exactly like any shelf a user creates themselves, and a
+  profile can end up with zero shelves if a user deletes all of them.
+- Shelves hold books via `shelf_books`, independent of whether that book
+  is tracked in `list_entries` at all — pure curation. Added from a
   book's own detail page (`components/ShelfPicker.tsx` on
   `BookDetail.tsx`), not from a picker built into the shelf view itself.
-- **`public_reading_status`** is a Postgres view —
-  `select user_id, book_id, status, percent_complete, rating, started_at,
-  finished_at from list_entries` — deliberately excluding `review` (see
-  `product.md`: reviews are "a private text note"). Views run with the
-  owning role's privileges by default (no `security_invoker`), which is
-  *why* this works: it bypasses `list_entries`'s owner-only RLS for
-  exactly these 6 columns, for any authenticated caller, without ever
-  making `review` or any other column public. Supabase's advisor flags
-  this as a "Security Definer View" — expected and accepted, not a leak;
-  confirmed via `get_advisors` that nothing else new appeared alongside
-  it when this was added. `src/services/supabase/shelves.ts`'s
-  `getPublicReadingStatusForUser` queries this view and then a separate
-  `books` query to attach cover/title/authors — not an embedded
-  PostgREST join, since a plain view carries no real FK constraint for
-  PostgREST to embed through.
+- **Reading-status tracking (`list_entries` — status/progress/rating/
+  private notes) is completely independent of shelving**, and has no
+  cross-user read path at all — the `public_reading_status` view that
+  briefly existed for this (ADR-007) was dropped along with the
+  default-shelf concept it served (ADR-008), since public profiles now
+  only ever show shelf contents. `Profile.tsx` does a client-side lookup
+  by `book_id` against the signed-in user's own tracked list purely to
+  show a status badge on their own shelved books that happen to also be
+  tracked — not a data relationship between the two systems.
 - `/u/:username` (`src/pages/PublicProfile.tsx`, `usePublicProfile`) is
   the read-only rendering of another signed-in user's shelves — no edit
-  controls, no genre-preference editor, and (per the view above) never
-  that user's `review` text.
+  controls, no genre-preference editor, and no reading-status data of
+  any kind (there's no surface left that would expose it).
 - **Known gap, not yet built**: shelf reordering exists at the
   service/hook layer (`reorderShelves` in `services/supabase/shelves.ts`
   and `useShelves`) but isn't wired to any UI control yet — shelves

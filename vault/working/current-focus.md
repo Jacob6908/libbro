@@ -8,37 +8,46 @@ genre palette as primary theme, the bookshelf-grid search redesign,
 search relevance ranking, categorized recommendations — see `decisions/`
 and `specs/` for each).
 
-**Most recent work (2026-08-09), on top of all of the above:**
+**Most recent work (2026-08-09), on top of all of the above — shipped in
+two fast iterations the same day:**
 
 - Folded the standalone `/my-list` page into `/profile`, which is now a
-  shelf-tab-based "Your Books" view; editing username/bio/avatar/genres
+  shelf-based "Your Books" view; editing username/bio/avatar/genres
   moved into its own `ProfileEditModal`, reached via an "Edit profile"
   button, separate from the browsing view.
-- Added **custom, user-titled bookshelves** alongside the 5 existing
-  status-based ones, and made profiles viewable by other signed-in users
-  at `/u/:username` (read-only). This is a real product-direction shift,
-  not a routine refinement — see
-  `decisions/ADR-007-custom-bookshelves-and-profile-visibility.md` and
-  `specs/bookshelves.md` for the full design and the three forks the
-  user resolved before any schema work started (default-shelf/status
-  coupling, visibility scope, whether a shelf requires the book to be
-  tracked).
-- Required new live-schema objects (`shelves`, `shelf_books`, the
-  `public_reading_status` view) applied directly against the Supabase
-  project via `mcp__supabase__apply_migration`, per
-  `decisions/ADR-002-dashboard-managed-schema.md`'s established pattern.
-- Hit the same bug class as `book_genres` did during v1: both new tables
-  shipped with correct RLS but no table-level `GRANT`, causing every
-  request to 403 until caught by browser testing. Fixed in the same
-  session — see `quality.md`.
+- **Iteration 1**: added bookshelves with 5 default shelves auto-synced
+  to reading status plus optional custom shelves, and made profiles
+  viewable by other signed-in users at `/u/:username` (read-only) —
+  `decisions/ADR-007-custom-bookshelves-and-profile-visibility.md`.
+  Required new live-schema objects (`shelves`, `shelf_books`, a
+  `public_reading_status` view) applied via
+  `mcp__supabase__apply_migration`, per `decisions/ADR-002`'s
+  established pattern. Hit the same bug class as `book_genres` did
+  during v1: both new tables shipped with correct RLS but no
+  table-level `GRANT`, causing every request to 403 until caught by
+  browser testing — see `quality.md`.
 - Added a new `/quality-check` skill (`.claude/skills/quality-check/`):
   runs lint/typecheck/build plus a browser-driven verification pass in a
-  background subagent, so other work (like this vault reconciliation)
-  can proceed in parallel instead of blocking on it. Used for the final
-  verification pass on this feature, including a disposable-account test
-  confirming new signups get their 5 default shelves via the
-  `handle_new_user()` trigger (not just the one-time backfill migration
-  that covered the 35 pre-existing profiles).
+  background subagent, so other work (like vault reconciliation) can
+  proceed in parallel instead of blocking on it.
+- **Iteration 2, hours later**: after reviewing iteration 1 running in
+  the app, the user asked to go further — drop the default/status-linked
+  shelf concept entirely in favor of full customizability. Shelves are
+  now flat (no `status_key` column at all); every profile gets exactly
+  one ordinary, auto-seeded "My shelf" instead of 5, renamable/deletable
+  like any shelf. Reading-status tracking (want to read/reading/
+  completed/on hold/dropped + progress/rating/notes) was kept but made
+  fully independent of shelving — still lives on `BookDetail.tsx`
+  exactly as before either iteration. The now-unneeded
+  `public_reading_status` view and its client function were deleted.
+  See `decisions/ADR-008-flat-shelves-no-default-status-shelves.md`
+  (current) and `specs/bookshelves.md` (rewritten to describe this
+  shape). ADR-007 is marked superseded, not edited, per this vault's
+  rule against rewriting accepted ADRs.
+- Verified end-to-end both times via two rounds of the `/quality-check`
+  skill (lint/typecheck/build + a background subagent's browser-driven
+  pass), including disposable-account tests of the signup-seeding
+  trigger both before and after the flat-shelves rework.
 - Committed to `production` alongside this vault reconciliation; not yet
   pushed to `origin/production` or folded into PR #7.
 

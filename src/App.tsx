@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import BookSearch from "./pages/BookSearch";
 import BookDetail from "./pages/BookDetail";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 import Recommendations from "./pages/Recommendations";
 import RecommendationsAll from "./pages/RecommendationsAll";
 import RequireAuth from "./components/RequireAuth";
@@ -30,6 +31,7 @@ function App() {
         <Route path="/books" element={<BookSearch />} />
         <Route path="/books/:bookId" element={<BookDetail />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/u/:username" element={<PublicProfile />} />
         <Route path="/recommendations" element={<Recommendations />} />
         <Route path="/recommendations/all" element={<RecommendationsAll />} />
       </Route>

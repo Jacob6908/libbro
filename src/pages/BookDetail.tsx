@@ -2,6 +2,7 @@ import { useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getBookById } from "../services/supabase/books";
 import ListEntryEditor from "../components/ListEntryEditor";
+import ShelfPicker from "../components/ShelfPicker";
 import SimilarBooks from "../components/SimilarBooks";
 
 export default function BookDetail() {
@@ -57,6 +58,7 @@ export default function BookDetail() {
         title={book.title}
         authors={book.authors}
       />
+      <ShelfPicker bookId={book.id} />
       <SimilarBooks bookId={book.id} />
     </main>
   );

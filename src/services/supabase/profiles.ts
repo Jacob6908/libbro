@@ -12,6 +12,19 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data;
 }
 
+export async function getProfileByUsername(
+  username: string
+): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
 export interface ProfilePatch {
   username: string;
   bio: string | null;

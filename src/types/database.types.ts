@@ -77,3 +77,30 @@ export interface ListEntry {
   created_at: string;
   updated_at: string;
 }
+
+export interface Shelf {
+  id: string;
+  profile_id: string;
+  title: string;
+  status_key: ReadingStatus | null;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ShelfBook {
+  shelf_id: string;
+  book_id: string;
+  position: number;
+  added_at: string;
+}
+
+export interface PublicReadingStatus {
+  user_id: string;
+  book_id: string;
+  status: ReadingStatus;
+  percent_complete: number;
+  rating: number | null;
+  started_at: string | null;
+  finished_at: string | null;
+}

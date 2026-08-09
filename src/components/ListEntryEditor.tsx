@@ -54,7 +54,7 @@ export default function ListEntryEditor({
           }
           className="w-fit rounded-full bg-primary px-4 py-2 text-sm font-bold text-white"
         >
-          {isSaving ? "Adding..." : "+ Add to My shelf"}
+          {isSaving ? "Adding..." : "+ Add to your list"}
         </button>
       )}
 

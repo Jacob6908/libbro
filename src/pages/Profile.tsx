@@ -12,8 +12,6 @@ import GenrePreferencePicker from "../components/GenrePreferencePicker";
 import { STATUS_COLORS, STATUS_LABELS } from "../lib/statusColors";
 import "../components/BookShelfCover.css";
 
-const MY_SHELF = "my-shelf";
-
 export default function Profile() {
   const { user } = useAuth();
   const { profile, isLoading: isProfileLoading } = useProfile();
@@ -21,21 +19,24 @@ export default function Profile() {
   const { shelves, createShelf, renameShelf, deleteShelf } = useShelves(
     user?.id
   );
-  const [selectedShelfId, setSelectedShelfId] = useState<string>(MY_SHELF);
+  const [selectedShelfId, setSelectedShelfId] = useState<string | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isAddingShelf, setIsAddingShelf] = useState(false);
   const [newShelfTitle, setNewShelfTitle] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
 
-  const customShelves = shelves.filter((shelf) => shelf.status_key == null);
   const selectedShelf =
-    selectedShelfId === MY_SHELF
-      ? null
-      : (customShelves.find((s) => s.id === selectedShelfId) ?? null);
+    shelves.find((s) => s.id === selectedShelfId) ?? shelves[0] ?? null;
 
-  const { shelfBooks, removeBook } = useShelfBooks(
-    selectedShelf ? selectedShelf.id : undefined
+  const { shelfBooks, removeBook } = useShelfBooks(selectedShelf?.id);
+
+  // Tracking (status/progress/rating/notes) is independent of shelving —
+  // this just lets a shelved book that also happens to be tracked show its
+  // status badge, same visual language as before.
+  const entryByBookId = useMemo(
+    () => new Map(entries.map((entry) => [entry.book_id, entry])),
+    [entries]
   );
 
   const completedThisYear = useMemo(() => {
@@ -68,8 +69,6 @@ export default function Profile() {
     setNewShelfTitle("");
     setIsAddingShelf(false);
   };
-
-  const isViewingMyShelf = selectedShelfId === MY_SHELF;
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
@@ -116,22 +115,7 @@ export default function Profile() {
             </h2>
           </div>
           <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => setSelectedShelfId(MY_SHELF)}
-              className={`rounded border bg-white px-4 py-3 text-left ${
-                isViewingMyShelf
-                  ? "border-primary shadow-sm"
-                  : "border-gray-200"
-              }`}
-            >
-              <span className="block font-semibold">My shelf</span>
-              <span className="text-sm text-gray-500">
-                {entries.length} tracked
-              </span>
-            </button>
-
-            {customShelves.map((shelf) => (
+            {shelves.map((shelf) => (
               <button
                 key={shelf.id}
                 type="button"
@@ -143,7 +127,6 @@ export default function Profile() {
                 }`}
               >
                 <span className="block font-semibold">{shelf.title}</span>
-                <span className="text-sm text-gray-500">Custom shelf</span>
               </button>
             ))}
           </div>
@@ -231,7 +214,7 @@ export default function Profile() {
                   type="button"
                   onClick={() => {
                     deleteShelf(selectedShelf.id);
-                    setSelectedShelfId(MY_SHELF);
+                    setSelectedShelfId(null);
                   }}
                   className="text-red-600 hover:text-red-800"
                 >
@@ -242,57 +225,15 @@ export default function Profile() {
         </aside>
 
         <section className="flex min-w-0 flex-col gap-4">
-          <div>
-            <h2 className="text-xl font-semibold">
-              {selectedShelf?.title ?? "My shelf"}
-            </h2>
-            <p className="text-sm text-gray-500">
-              {isViewingMyShelf
-                ? "Everything you are tracking."
-                : "Books you added to this shelf."}
-            </p>
-          </div>
-
-          {isViewingMyShelf ? (
+          {selectedShelf ? (
             <>
-              {isListLoading && (
-                <p className="text-sm text-gray-500">Loading your books...</p>
-              )}
-              {!isListLoading && entries.length === 0 && (
+              <div>
+                <h2 className="text-xl font-semibold">{selectedShelf.title}</h2>
                 <p className="text-sm text-gray-500">
-                  Nothing here yet - search for a book to get started.
+                  Books you added to this shelf.
                 </p>
-              )}
-
-              <div className="shelf-grid">
-                {entries.map((entry) => (
-                  <Link
-                    key={entry.id}
-                    to={`/books/${entry.book.id}`}
-                    className="shelf-card-btn"
-                  >
-                    <BookShelfCover
-                      title={entry.book.title}
-                      authors={entry.book.authors}
-                      coverImageUrl={entry.book.cover_image_url}
-                      badge={
-                        <span className="shelf-card-badge">
-                          <span
-                            className="shelf-card-badge-swatch"
-                            style={{ background: STATUS_COLORS[entry.status] }}
-                          />
-                          {STATUS_LABELS[entry.status]}
-                          {entry.status === "reading" &&
-                            ` · ${entry.percent_complete}%`}
-                        </span>
-                      }
-                    />
-                  </Link>
-                ))}
               </div>
-            </>
-          ) : (
-            <>
+
               {shelfBooks.length === 0 && (
                 <p className="text-sm text-gray-500">
                   Nothing on this shelf yet - add a book to it from the book's
@@ -300,34 +241,60 @@ export default function Profile() {
                 </p>
               )}
               <div className="shelf-grid">
-                {shelfBooks.map(({ book }) => (
-                  <Link
-                    key={book.id}
-                    to={`/books/${book.id}`}
-                    className="shelf-card-btn"
-                  >
-                    <BookShelfCover
-                      title={book.title}
-                      authors={book.authors}
-                      coverImageUrl={book.cover_image_url}
-                      badge={
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            removeBook(book.id);
-                          }}
-                          className="text-xs font-bold text-red-600 hover:text-red-800"
-                        >
-                          Remove from shelf
-                        </button>
-                      }
-                    />
-                  </Link>
-                ))}
+                {shelfBooks.map(({ book }) => {
+                  const trackedEntry = entryByBookId.get(book.id);
+                  return (
+                    <Link
+                      key={book.id}
+                      to={`/books/${book.id}`}
+                      className="shelf-card-btn"
+                    >
+                      <BookShelfCover
+                        title={book.title}
+                        authors={book.authors}
+                        coverImageUrl={book.cover_image_url}
+                        badge={
+                          <>
+                            {trackedEntry && (
+                              <span className="shelf-card-badge">
+                                <span
+                                  className="shelf-card-badge-swatch"
+                                  style={{
+                                    background:
+                                      STATUS_COLORS[trackedEntry.status],
+                                  }}
+                                />
+                                {STATUS_LABELS[trackedEntry.status]}
+                                {trackedEntry.status === "reading" &&
+                                  ` · ${trackedEntry.percent_complete}%`}
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                removeBook(book.id);
+                              }}
+                              className="text-xs font-bold text-red-600 hover:text-red-800"
+                            >
+                              Remove from shelf
+                            </button>
+                          </>
+                        }
+                      />
+                    </Link>
+                  );
+                })}
               </div>
             </>
+          ) : (
+            !isListLoading && (
+              <p className="text-sm text-gray-500">
+                You don't have any shelves yet — add one to start organizing
+                your books.
+              </p>
+            )
           )}
         </section>
       </div>

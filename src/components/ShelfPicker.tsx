@@ -7,14 +7,13 @@ import {
   removeBookFromShelf,
 } from "../services/supabase/shelves";
 
-/** Lets the signed-in user file the current book onto any of their custom
- * shelves. Default (status-linked) shelves aren't listed here — those are
- * still driven by the status-tracking control above this component. */
+/** Lets the signed-in user file the current book onto any of their shelves
+ * — independent of the status-tracking control above this component, which
+ * covers reading status/progress/rating/notes, not shelf membership. */
 export default function ShelfPicker({ bookId }: { bookId: string }) {
   const { user } = useAuth();
   const { shelves, isLoading: isShelvesLoading } = useShelves(user?.id);
-  const customShelves = shelves.filter((s) => s.status_key == null);
-  const shelfIds = customShelves.map((s) => s.id);
+  const shelfIds = shelves.map((s) => s.id);
 
   const queryClient = useQueryClient();
   const queryKey = ["shelf-membership", bookId, shelfIds];
@@ -39,11 +38,11 @@ export default function ShelfPicker({ bookId }: { bookId: string }) {
 
   if (isShelvesLoading) return null;
 
-  if (customShelves.length === 0) {
+  if (shelves.length === 0) {
     return (
       <p className="text-sm text-gray-500">
-        You don't have any custom shelves yet — create one from your profile to
-        start organizing books this way.
+        You don't have any shelves yet — create one from your profile to start
+        organizing books this way.
       </p>
     );
   }
@@ -51,10 +50,10 @@ export default function ShelfPicker({ bookId }: { bookId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-        Add to profile shelves
+        Add to shelves
       </p>
       <div className="flex flex-wrap gap-2">
-        {customShelves.map((shelf) => {
+        {shelves.map((shelf) => {
           const isMember = memberIds.has(shelf.id);
           return (
             <button

@@ -1,10 +1,5 @@
 import supabase from "../../supabase-client";
-import type {
-  Book,
-  PublicReadingStatus,
-  Shelf,
-  ShelfBook,
-} from "../../types/database.types";
+import type { Book, Shelf, ShelfBook } from "../../types/database.types";
 
 export async function getShelvesForProfile(
   profileId: string
@@ -124,37 +119,4 @@ export async function getShelfIdsForBook(
 
   if (error) throw error;
   return (data ?? []).map((row) => row.shelf_id);
-}
-
-export interface PublicReadingStatusWithBook extends PublicReadingStatus {
-  book: Book;
-}
-
-/** Reads the `public_reading_status` view (a deliberately narrow subset of
- * `list_entries` that excludes `review`, exposed to any signed-in user)
- * and attaches book data with a separate query — resource embedding isn't
- * reliable through a plain view since it carries no real FK constraint. */
-export async function getPublicReadingStatusForUser(
-  userId: string
-): Promise<PublicReadingStatusWithBook[]> {
-  const { data: statuses, error: statusError } = await supabase
-    .from("public_reading_status")
-    .select("*")
-    .eq("user_id", userId);
-
-  if (statusError) throw statusError;
-  if (!statuses || statuses.length === 0) return [];
-
-  const bookIds = statuses.map((s) => s.book_id);
-  const { data: books, error: booksError } = await supabase
-    .from("books")
-    .select("*")
-    .in("id", bookIds);
-
-  if (booksError) throw booksError;
-
-  const booksById = new Map((books ?? []).map((b) => [b.id, b]));
-  return statuses
-    .filter((s) => booksById.has(s.book_id))
-    .map((s) => ({ ...s, book: booksById.get(s.book_id)! }));
 }

@@ -12,11 +12,8 @@ export default function PublicProfile() {
     usePublicProfile(username);
 
   const [selectedShelfId, setSelectedShelfId] = useState<string | null>(null);
-  const customShelves = shelves.filter((shelf) => shelf.status_key == null);
   const selectedShelf =
-    customShelves.find((s) => s.id === selectedShelfId) ??
-    customShelves[0] ??
-    null;
+    shelves.find((s) => s.id === selectedShelfId) ?? shelves[0] ?? null;
 
   const { shelfBooks, isLoading: isShelfBooksLoading } = useShelfBooks(
     selectedShelf ? selectedShelf.id : undefined
@@ -59,14 +56,14 @@ export default function PublicProfile() {
         <p className="text-sm text-gray-500">Loading shelves...</p>
       )}
 
-      {!isShelvesLoading && customShelves.length > 0 && (
+      {!isShelvesLoading && shelves.length > 0 && (
         <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
           <aside className="flex flex-col gap-3">
             <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">
               Shelves
             </h2>
             <div className="flex flex-col gap-2">
-              {customShelves.map((shelf) => {
+              {shelves.map((shelf) => {
                 const isSelected = selectedShelf?.id === shelf.id;
 
                 return (
@@ -126,7 +123,7 @@ export default function PublicProfile() {
         </div>
       )}
 
-      {!isShelvesLoading && customShelves.length === 0 && (
+      {!isShelvesLoading && shelves.length === 0 && (
         <p className="text-sm text-gray-500">No shelves published yet.</p>
       )}
     </main>

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import "./NavBar.css";
 
@@ -11,6 +11,12 @@ const LINKS = [
 
 export default function NavBar() {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/signin", { replace: true });
+  };
 
   return (
     <header className="border-b bg-white">
@@ -34,7 +40,7 @@ export default function NavBar() {
         </nav>
         <button
           type="button"
-          onClick={() => signOut()}
+          onClick={handleSignOut}
           className="nav-signout justify-self-end"
         >
           Sign out

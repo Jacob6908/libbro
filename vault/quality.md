@@ -1,7 +1,7 @@
 # Quality Checks
 
 Lint, type-check, and build were re-run and verified during the
-2026-08-03 audit; other commands as noted otherwise. Run from the repo
+2026-08-07 audit; other commands as noted otherwise. Run from the repo
 root.
 
 ## Install
@@ -35,7 +35,7 @@ npm run lint
 
 ESLint flat config (`eslint.config.js`): `@eslint/js` + `typescript-eslint`
 recommended + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh`,
-Prettier enforced as a lint rule. **Verified passing** 2026-08-03.
+Prettier enforced as a lint rule. **Verified passing** 2026-08-07.
 
 ```
 npm run lint:fix
@@ -62,7 +62,7 @@ Not a `package.json` script (the `build` script runs `tsc -b` as part of
 building, which does write `.tsbuildinfo` cache files under
 `node_modules/.tmp`, and then runs `vite build`). Use the bare
 `--noEmit` form for a pure, non-writing type-check. **Verified passing**
-2026-08-03, `strict: true` plus `noUnusedLocals`,
+2026-08-07, `strict: true` plus `noUnusedLocals`,
 `noUnusedParameters`, `noFallthroughCasesInSwitch`,
 `noUncheckedSideEffectImports` in both `tsconfig.app.json` and
 `tsconfig.node.json`.
@@ -74,11 +74,11 @@ npm run build
 ```
 
 Runs `tsc -b && vite build`, outputs to `dist/` (gitignored). **Verified
-passing** 2026-08-03 — ~865ms, one non-blocking warning about the
-main JS chunk exceeding 500kB (547.07kB as of this audit, up slightly
-from 545.68kB at the prior audit after the bookshelf-grid search redesign
-— no code-splitting has been set up yet — worth revisiting if the bundle
-keeps growing, not a failure today).
+passing** 2026-08-07 — ~920ms, one non-blocking warning about the
+main JS chunk exceeding 500kB (553.80kB as of this audit, up from
+547.07kB at the prior audit after the search-ranking/categorized-
+recommendations rework — no code-splitting has been set up yet — worth
+revisiting if the bundle keeps growing, not a failure today).
 
 ## Tests
 

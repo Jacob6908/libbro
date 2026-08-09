@@ -20,10 +20,12 @@ these — treat as open until stated.
 1. **Sign up / sign in** — email + password only, no OAuth
    (`SignUp.tsx`, `SignIn.tsx`, `ForgotPassword.tsx`, `ResetPassword.tsx`).
 2. **Search and add a book** — search merges a local Postgres cache with
-   live Google Books results, shown as a five-per-row bookshelf grid of
-   covers; selecting a result imports it into the local cache on demand
-   (`BookSearch.tsx`, `components/BookShelfCover.tsx`,
-   `api/bookImport.ts`).
+   live Google Books results, ranked by relevance (title/author match
+   quality, not just which source returned it first) and shown as a
+   five-per-row bookshelf grid of covers; selecting a result imports it
+   into the local cache on demand (`BookSearch.tsx`,
+   `components/BookShelfCover.tsx`, `api/bookImport.ts` — see
+   `architecture.md`'s "Search result ranking").
 3. **Track a book** — set status (want to read / reading / completed / on
    hold / dropped), a 0–100% progress slider, a 1–5 star rating, and a
    private text note, from the book's detail page (`BookDetail.tsx`,
@@ -36,12 +38,15 @@ these — treat as open until stated.
    24-genre taxonomy, picked in a floating tap-to-highlight modal
    (`components/GenrePreferencePicker.tsx`,
    `components/GenrePreferenceModal.tsx`), on the profile page.
-6. **Get recommendations** — a personal "recommended for you" feed
-   (`Recommendations.tsx`) combining genre preferences and inferred taste
-   from ratings, plus a per-book "similar to this" widget
-   (`components/SimilarBooks.tsx`).
+6. **Get recommendations** — a Netflix-style feed of named category rows
+   (e.g. "Horror for you", "Because you loved X", "Longer than you'd
+   usually read") built from genre preferences and inferred taste from
+   ratings. `/recommendations` shows a random 3-4 rows that change on
+   every visit; `/recommendations/all` browses every category. Plus a
+   per-book "similar to this" widget (`components/SimilarBooks.tsx`).
+   See `specs/recommendations.md`.
 7. **Home dashboard** — currently-reading shelf + a short recommendations
-   preview (`Home.tsx`).
+   preview drawn from the same category feed (`Home.tsx`).
 
 ## Explicit non-goals for this version
 

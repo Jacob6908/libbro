@@ -3,20 +3,6 @@
 Unresolved questions surfaced during vault audits. Grouped by topic.
 Answer these with real evidence when it appears — don't guess.
 
-## Git workflow
-
-- **Is `book_style` a one-off branch or a shift away from the single
-  `production` working branch?** `runbooks/git-workflow.md` documents
-  one working branch (`production`) that gets pushed and PR'd into
-  `main`. PR #6 (the bookshelf-grid redesign) instead came from a new
-  branch, `book_style`, branched off `production`. Why it matters: if
-  per-feature branches are the new pattern, `git-workflow.md` should be
-  rewritten to describe branch naming/lifecycle (created from where,
-  deleted after merge or not); if it was a one-off, no doc change is
-  needed and `production` remains the answer for future work. Not
-  changed this audit since a single deviation isn't enough evidence to
-  rewrite a documented convention.
-
 ## Deployment
 
 - **Is there a deployment target?** Still unknown as of this audit —
@@ -31,7 +17,16 @@ Answer these with real evidence when it appears — don't guess.
   whether a real, properly restricted key is configured wasn't
   re-verified in this audit (env values are never inspected/stored here
   by policy). Why it matters: unauthenticated Google Books quota is only
-  ~1000/day.
+  ~1000/day, and this matters more now — see the next item.
+- **Is the increased Google Books request volume from the new
+  multi-query search strategy a problem?** As of 2026-08-07,
+  `googleBooksProvider.ts` issues up to 3 parallel API requests per
+  search keystroke (exact-phrase, per-term, raw) instead of 1, to
+  improve match recall — see `architecture.md`'s "Search result
+  ranking". Why it matters: this multiplies quota consumption 2-3x per
+  search; worth revisiting if the ~1000/day unauthenticated quota (or
+  even a provisioned key's quota) turns out to be a real constraint in
+  practice. Not measured or hit yet as of this audit.
 - **Should a periodic schema snapshot be exported into
   `vault/working/`?** Proposed as a lightweight mitigation for
   `decisions/ADR-002-dashboard-managed-schema.md`'s accepted risk, not
@@ -52,6 +47,14 @@ Answer these with real evidence when it appears — don't guess.
 
 ## Product
 
+- **Should `getRecommendationsForUser`/`useRecommendations` (the
+  original flat recommendation list) be kept, removed, or repurposed?**
+  As of the 2026-08-07 categorized-recommendations rework, `Home.tsx`
+  and `Recommendations.tsx` both moved to `getRecommendationCategories`
+  instead — nothing in `src/pages/` calls the flat version anymore, but
+  it wasn't deleted. Why it matters: it's functioning dead code today;
+  someone should decide whether to remove it, or whether it has a future
+  use (e.g. a non-categorized fallback) that justifies keeping it.
 - **When (if ever) does series/volume tracking get built?** Deliberately
   deferred, see `decisions/ADR-005-defer-series-and-volumes.md`. No
   target version or timeline exists.

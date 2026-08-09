@@ -1,7 +1,7 @@
 # Architecture
 
 Verified against the repo and the live Supabase project, most recently
-during the 2026-07-28 audit. Schema/RLS facts were confirmed by querying
+during the 2026-08-07 audit. Schema/RLS facts were confirmed by querying
 the live project directly (schema is not in git — see below) rather than
 assumed from prior notes.
 
@@ -158,6 +158,34 @@ line count. The search query lives in the URL's `q` param
 (`useSearchParams`, `replace: true`) rather than only local state, so
 returning to `/books` via back-navigation restores the prior search.
 
+### Search result ranking
+
+Neither the local full-text query nor the Google Books API call returns
+results in relevance order on its own — merging them used to just
+concatenate local results before remote ones. `mergeResults`
+(`src/hooks/useBookSearch.ts`) now scores every merged result
+client-side (`scoreSearchResult`): tiered exact/prefix/whole-phrase
+matching against the title (and title+subtitle) first, then a
+token-coverage score (stop-word-aware, with an in-order bonus and a
+small cover-art tiebreak boost) against title and author text, and sorts
+the whole merged list by that score descending. A result that scores 0
+(no shared token with the query at all) is still kept, just sorted to
+the end — it deliberately does not filter results out, only reorders
+them, so a book Google Books or Postgres considered a match (e.g. via
+stemming, or a field this scorer doesn't look at) never silently
+disappears.
+
+On the remote side, `googleBooksProvider.ts`'s `search()` now issues up
+to three query variants in parallel (`Promise.allSettled`) — an
+`intitle:"exact phrase"` query when the input has multiple words, an
+`intitle:` query per significant (non-stop-word, 3+ char) term, and the
+raw query as typed — and merges/dedupes the results by external id. This
+improves recall (a query that's too specific for a single `intitle:`
+phrase match can still hit via the per-term variant) at the cost of
+issuing more requests per search than before; see the Google Books quota
+note in `decisions/ADR-003-google-books-behind-provider-interface.md`'s
+consequences and `working/open-questions.md`.
+
 ## Avatar upload
 
 Selecting a photo (`Profile.tsx`) opens `AvatarCropModal`
@@ -226,16 +254,75 @@ at once.
 ## Recommendation engine
 
 `src/services/recommendations.ts` — plain TypeScript, no scoring logic in
-Postgres (queries are simple selects only). `getRecommendationsForUser`
-combines explicit `profile_genre_preferences` weights (×2 — in practice
-now almost always a flat 2, per above, since the picker no longer
-exposes a range) with inferred per-genre affinity from the user's own
-ratings, centered on the 1-5 scale's midpoint (×1); falls back to
-popularity ordering (`average_rating`/`ratings_count`) for a cold-start
-user with no signal. `getSimilarBooks` ranks by shared-genre count and
-author overlap, no user context. Content-based only — no collaborative
-filtering, since there's no social graph in this version
-(`decisions/ADR-004`).
+Postgres (queries are simple selects, ordered/filtered client-side).
+Content-based only — no collaborative filtering, since there's no social
+graph in this version (`decisions/ADR-004`).
+
+The explicit/inferred genre-scoring core is unchanged: explicit
+`profile_genre_preferences` weights (×2 — in practice now almost always
+a flat 2, per the genre-preference modal above) combined with inferred
+per-genre affinity from the user's own ratings, centered on the 1-5
+scale's midpoint (×1). What's built on top of that core changed
+(2026-08-07): recommendations are now a **Netflix-style category feed**
+rather than one flat ranked list.
+
+`getRecommendationCategories(userId, booksPerCategory)` builds up to
+several named `RecommendationCategory` rows (`{ id, title, books }`),
+generated in this order and de-duplicated against each other via one
+shared `seenIds` set (so the same book never appears twice across rows
+in a single call, and never repeats a book already in the user's
+tracked list):
+
+1. **"Top picks for you"** — the same blended top-6-genre score
+   `getRecommendationsForUser` used to expose directly (still exists,
+   see below), now just one row among several.
+2. **One row per top-scoring genre** (up to 6), titled `"{genre} for
+   you"`.
+3. **Up to 3 "Because you loved {title}"** rows, one per the user's
+   highest-rated tracked books (rating ≥ 4), each built from the
+   existing `getSimilarBooks`.
+4. **"Longer than you'd usually read"** — candidates with `page_count`
+   above 1.25× the average `page_count` across the user's own tracked
+   books; skipped entirely (not shown empty) if the user has no
+   page-count history yet.
+5. **"Highly rated overall"** — the same popularity fallback as before
+   (`average_rating`/`ratings_count`), always included last if
+   non-empty.
+
+Every category (and `getRecommendationsForUser`'s own list) also now
+filters to books that have `cover_image_url` set — a deliberate
+design choice from this rework, not a pre-existing constraint, so a
+book without cover art can never appear in a recommendation row. Each
+category over-fetches (`booksPerCategory × 4` candidates) before the
+shared dedup and cover-art filtering trim it down, so earlier categories
+consuming the strongest candidates doesn't starve later ones.
+
+A cold-start user (no preferences, no ratings, nothing tracked) still
+gets just the single "Highly rated overall" row, same fallback
+philosophy as before — categories are never padded to a fixed count.
+
+**Pages**: `/recommendations` (`useRecommendationCategories`) picks a
+random 3-4 of the generated categories once per page visit (re-rolled
+on every mount, not on every re-render) and links to
+`/recommendations/all`, which shows every generated category stacked,
+Netflix-browse style. Both reuse `components/RecommendationShelfRow.tsx`
+(a horizontally-scrolling shelf row using the same `BookShelfCover`
+visual language as search). The home dashboard preview
+(`Home.tsx`) now also calls `useRecommendationCategories` and flattens
+the first 5 books across categories, rather than calling the flat list
+hook directly.
+
+`getSimilarBooks` (per-book "similar to this", no user context, ranked
+by shared-genre count + author overlap) is unchanged in behavior beyond
+also picking up the cover-art filter and the shared `scoreBookQuality`
+tiebreak helper.
+
+**`getRecommendationsForUser`/`useRecommendations` (the original flat
+list) still exist and still work, but as of this audit nothing in
+`src/pages/` calls them anymore** — `Home.tsx` and `Recommendations.tsx`
+both moved to the category API. Whether to keep this as dead code,
+delete it, or find another use for it hasn't been decided; see
+`working/open-questions.md`.
 
 ## Security boundaries
 

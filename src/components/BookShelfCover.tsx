@@ -17,7 +17,13 @@ export default function BookShelfCover({
     <div className="shelf-card">
       <div className="shelf-card-cover">
         {coverImageUrl ? (
-          <img src={coverImageUrl} alt="" className="shelf-card-image" />
+          <img
+            src={coverImageUrl}
+            alt=""
+            className="shelf-card-image"
+            loading="lazy"
+            decoding="async"
+          />
         ) : (
           <div className="shelf-card-placeholder">
             <span className="shelf-card-placeholder-title">{title}</span>

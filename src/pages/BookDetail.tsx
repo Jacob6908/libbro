@@ -30,6 +30,7 @@ export default function BookDetail() {
             src={book.cover_image_url}
             alt=""
             className="h-48 w-32 flex-none rounded object-cover"
+            decoding="async"
           />
         ) : (
           <div className="h-48 w-32 flex-none rounded bg-gray-200" />

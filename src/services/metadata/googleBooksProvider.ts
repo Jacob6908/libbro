@@ -85,6 +85,24 @@ function extractIsbn(
   return identifiers?.find((id) => id.type === type)?.identifier ?? null;
 }
 
+/**
+ * Google Books' `thumbnail` link is a ~128px-wide image with a decorative
+ * page-curl overlay baked in, then gets stretched to fill much larger grid
+ * cells in the UI - that upscaling is what reads as blurry/grainy cover art.
+ * The same underlying image is available larger via the `zoom` param (higher
+ * = bigger) with the curl decoration removed via `edge`.
+ */
+function enhanceCoverUrl(url: string): string {
+  try {
+    const enhanced = new URL(url.replace(/^http:/, "https:"));
+    enhanced.searchParams.set("zoom", "2");
+    enhanced.searchParams.delete("edge");
+    return enhanced.toString();
+  } catch {
+    return url;
+  }
+}
+
 function toSearchResult(volume: GoogleBooksVolume): BookSearchResult {
   const info = volume.volumeInfo;
   return {
@@ -92,7 +110,9 @@ function toSearchResult(volume: GoogleBooksVolume): BookSearchResult {
     title: info.title,
     subtitle: info.subtitle ?? null,
     authors: info.authors ?? [],
-    coverImageUrl: info.imageLinks?.thumbnail ?? null,
+    coverImageUrl: info.imageLinks?.thumbnail
+      ? enhanceCoverUrl(info.imageLinks.thumbnail)
+      : null,
     publishedDate: info.publishedDate ?? null,
   };
 }

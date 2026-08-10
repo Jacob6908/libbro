@@ -23,6 +23,8 @@ export default function SimilarBooks({ bookId }: { bookId: string }) {
                 src={book.cover_image_url}
                 alt=""
                 className="h-32 w-24 rounded object-cover"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
               <div className="h-32 w-24 rounded bg-gray-200" />

@@ -14,6 +14,8 @@ export default function BookCoverCard({
           src={coverImageUrl}
           alt=""
           className="h-16 w-11 flex-none rounded object-cover"
+          loading="lazy"
+          decoding="async"
         />
       ) : (
         <div className="h-16 w-11 flex-none rounded bg-gray-200" />

@@ -74,8 +74,9 @@ replaced).
   `profile_genre_preferences.weight` long-term was discussed but not
   decided — see `working/open-questions.md`, not an ADR, since nothing
   was actually settled there.)
-- [`runbooks/git-workflow.md`](runbooks/git-workflow.md) — the
-  `production` → `main` PR flow, verified against three real merges.
+- [`runbooks/git-workflow.md`](runbooks/git-workflow.md) — the current
+  feature-branch → `main` PR flow, plus the older `production`-branch
+  pattern it replaced (verified against `gh pr list`, not assumed).
 - [`working/current-focus.md`](working/current-focus.md) — temporary,
   current project context.
 - [`working/open-questions.md`](working/open-questions.md) — unresolved

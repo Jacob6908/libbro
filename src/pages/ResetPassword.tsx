@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import {
   PASSWORD_REQUIREMENT_CHECKS,
@@ -46,11 +46,39 @@ export default function ResetPassword() {
   };
 
   if (isLoading) {
-    return null;
+    return (
+      <main className="auth-page">
+        <p className="auth-wordmark">
+          li<span className="tilt">b</span>bro
+        </p>
+        <p className="text-sm text-ink/55">Verifying your reset link...</p>
+      </main>
+    );
   }
 
   if (!user) {
-    return <Navigate to="/forgot-password" replace />;
+    return (
+      <main className="auth-page">
+        <p className="auth-wordmark">
+          li<span className="tilt">b</span>bro
+        </p>
+        <div className="flex max-w-sm flex-col items-center gap-3 text-center">
+          <h1 className="font-serif text-xl font-semibold">
+            Link expired or already used
+          </h1>
+          <p className="text-sm text-ink/70">
+            This password reset link is no longer valid — reset links only work
+            once. Request a new one and use it just once to set your password.
+          </p>
+          <Link
+            to="/forgot-password"
+            className="text-sm font-semibold text-primary"
+          >
+            Request a new reset link
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   return (

@@ -189,17 +189,45 @@ during this audit.
 
 ## Auth flow
 
-Single Supabase client (`src/supabase-client.ts`) using
-`VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`. `AuthContext` +
-`AuthProvider` (`src/context/`) hold `user` and an `isLoading` flag,
-hydrated via `supabase.auth.getSession()` + `onAuthStateChange`, consumed
-via `useAuth()`. `RequireAuth` (`src/components/RequireAuth.tsx`) gates
-every route except the four auth pages, and explicitly waits for
-`isLoading` to resolve before redirecting — an early version redirected
-prematurely on every full page load because it treated "session not yet
-checked" the same as "logged out." Methods used: `signUp`,
-`signInWithPassword`, `signOut`, `resetPasswordForEmail`, `updateUser`
-(password), `resend` (confirmation email). No OAuth providers.
+Single Supabase client (`src/supabase-client.ts`), constructed with
+explicit `auth: { persistSession: true, autoRefreshToken: true,
+detectSessionInUrl: true }` options, and fails fast (throws) if
+`VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY` is missing rather than
+producing an ambiguous later failure. `AuthContext` + `AuthProvider`
+(`src/context/`) hold `user` and an `isLoading` flag, hydrated via
+`supabase.auth.getSession()` (now handles a resolved `error` or a
+rejected promise by clearing `user` rather than assuming success, and
+guards state updates with an `isMounted` flag) + `onAuthStateChange`,
+consumed via `useAuth()`. `RequireAuth`
+(`src/components/RequireAuth.tsx`) gates every authenticated route and
+explicitly waits for `isLoading` to resolve before redirecting — an
+early version redirected prematurely on every full page load because it
+treated "session not yet checked" the same as "logged out."
+`RedirectIfAuthenticated` (`src/components/RedirectIfAuthenticated.tsx`)
+is the inverse guard, wrapping only `/signin` and `/signup` in
+`src/App.tsx` — a session already present redirects to `/` instead of
+showing the form. `/forgot-password` and `/reset-password` are **not**
+wrapped in it. `/reset-password` has its own guard instead: no active
+session (i.e. the user didn't arrive via a valid recovery link) redirects
+to `/forgot-password`. Sign-out (`NavBar.tsx`) awaits `signOut()` then
+explicitly navigates to `/signin` (`replace: true`) rather than relying
+on `onAuthStateChange` + `RequireAuth` to redirect eventually. Methods
+used: `signUp`, `signInWithPassword`, `signOut`, `resetPasswordForEmail`,
+`updateUser` (password), `resend` (confirmation email). No OAuth
+providers.
+
+Password strength (`src/lib/authValidation.ts`): 8+ characters, a digit,
+and a special character, enforced client-side on sign-up and
+password-reset (not sign-in, which only requires non-empty). Sign-up and
+reset-password also carry a set of Chrome-credential-manager-specific
+workarounds (masked `type="text"` fields instead of `type="password"`,
+fully manual form submission, tuned `autocomplete`/`data-*ignore`
+attributes) — non-obvious from the code alone without knowing *why*, see
+`specs/auth.md` for the full rationale and what's still unverified
+(Chrome only, not Safari/Firefox). `/signin` and `/signup` share a
+redesigned card-less layout (`src/pages/Auth.css`); `/forgot-password`
+and `/reset-password` still use the older boxed-card layout — a known,
+open inconsistency (`specs/auth.md`, `working/open-questions.md`).
 
 Email confirmation is currently **disabled** on the Supabase project (a
 dashboard setting, not code) — signup returns a live session immediately.
@@ -255,6 +283,18 @@ issuing more requests per search than before; see the Google Books quota
 note in `decisions/ADR-003-google-books-behind-provider-interface.md`'s
 consequences and `working/open-questions.md`.
 
+Cover images (added 2026-08-09,
+`googleBooksProvider.ts`'s `enhanceCoverUrl`): Google Books' raw
+`thumbnail` link is a small (~128px) image with a decorative page-curl
+overlay, then gets stretched to fill much larger grid cells — that
+upscaling is what read as blurry cover art. `enhanceCoverUrl` forces
+`https:`, sets `zoom=2` (roughly doubles resolution), and strips the
+`edge` param (removes the curl decoration) on every cover URL before it
+reaches the UI. Cover `<img>` elements across `BookCoverCard.tsx`,
+`BookShelfCover.tsx`, `SimilarBooks.tsx`, and `BookDetail.tsx` also got
+`loading="lazy"`/`decoding="async"`, so a grid of 20+ covers doesn't all
+decode on the main thread at once (was contributing to choppy scroll).
+
 ## Avatar upload
 
 Selecting a photo (`Profile.tsx`) opens `AvatarCropModal`
@@ -288,7 +328,14 @@ elsewhere — yellow star ratings (`ListEntryEditor`), red error text
 throughout — are deliberately outside this token system; they're
 functional/conventional colors, not brand accents, and weren't
 recolored. No hover or `focus-visible` styling exists on any button
-anywhere in the app (true before this token system existed too).
+anywhere in the app (true before this token system existed too). A
+universal cursor rule (`src/index.css`, added 2026-08-09) sets
+`cursor: pointer` on every interactive element (`button:not(:disabled)`,
+`a[href]`, `[role="button"/"link"]`, `summary`, `label[for]`, enabled
+checkboxes/radios/selects) and `cursor: not-allowed` on disabled
+buttons/inputs/selects/textareas — a global rule, not per-component
+styling, since Tailwind/browser defaults don't apply pointer cursors to
+most of these by default.
 
 ## Genre preference editing
 

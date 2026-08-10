@@ -18,7 +18,9 @@ these — treat as open until stated.
 ## Primary user journeys (verified against `src/pages/`)
 
 1. **Sign up / sign in** — email + password only, no OAuth
-   (`SignUp.tsx`, `SignIn.tsx`, `ForgotPassword.tsx`, `ResetPassword.tsx`).
+   (`SignUp.tsx`, `SignIn.tsx`, `ForgotPassword.tsx`,
+   `ResetPassword.tsx`; see `specs/auth.md` for validation rules,
+   redirect behavior, and the reset-password session guard).
 2. **Search and add a book** — search merges a local Postgres cache with
    live Google Books results, ranked by relevance (title/author match
    quality, not just which source returned it first) and shown as a

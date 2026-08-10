@@ -69,8 +69,13 @@ this table.
 
 ## Implementation status
 
-Implemented. `src/components/ListEntryEditor.tsx`,
-`src/hooks/useListEntry.ts`, `src/services/supabase/listEntries.ts`.
+Implemented. `src/components/ListEntryEditor.tsx` (on
+`BookDetail.tsx`), `src/hooks/useListEntry.ts`,
+`src/services/supabase/listEntries.ts`. A second entry point,
+`src/components/ListEntryModal.tsx`, lets the same tracking data be
+edited from the Home dashboard's "Continue reading" spotlight card
+(`src/pages/Home.tsx`) without navigating to the book's detail page —
+same `list_entries` row, same hook underneath.
 
 ## Open questions
 

@@ -3,6 +3,39 @@
 Unresolved questions surfaced during vault audits. Grouped by topic.
 Answer these with real evidence when it appears — don't guess.
 
+## Git workflow
+
+- **Is the feature-branch-per-change pattern (PRs #10, #11, #12 —
+  `login_updates`, `small_tweaks`, `grainy_scroll`, each merged directly
+  into `main`) a deliberate, permanent replacement for the old
+  single-`production`-branch pattern (PRs #1-#8), or ad hoc?** `production`
+  is now 10 commits behind `main` with nothing unique on it, i.e.
+  effectively abandoned in practice — but nothing states this explicitly.
+  Why it matters: `runbooks/git-workflow.md` now documents both patterns;
+  if the new one is permanent, `production` (and possibly other stale
+  branches — `new_nav`, `book_style` — also have no commits beyond what's
+  already in `main`) could be deleted; if not, the runbook needs to say
+  which pattern to use when.
+
+## Auth
+
+- **When (if ever) do `/forgot-password` and `/reset-password` get the
+  same visual redesign `/signin`/`/signup` already have** (no-card
+  layout, big wordmark, `Auth.css`)? They currently still use the older
+  boxed-card layout. Why it matters: the auth pages read as visually
+  inconsistent with each other right now — someone should decide whether
+  this is a "not yet gotten to" gap or an intentional pause.
+- **Do the Chrome-credential-manager workarounds in `specs/auth.md`
+  (masked `type="text"` password fields, fully manual form submission,
+  tuned `autocomplete`) work correctly, or even matter, in Safari and
+  Firefox?** Only verified against Chrome. Why it matters: the masked-
+  input technique (`-webkit-text-security`) is a WebKit/Blink-specific
+  CSS property with no cross-browser guarantee: it might not mask at
+  all in other engines, and the underlying save-prompt behavior it's
+  working around is itself Chrome-specific, so the same code could be
+  solving a problem that doesn't exist (or introducing a display bug)
+  in other browsers.
+
 ## Deployment
 
 - **Is there a deployment target?** Still unknown as of this audit —

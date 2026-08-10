@@ -4,49 +4,34 @@ Entry point for `libbro`'s knowledge base. Documents durable project
 knowledge that would be hard or risky to rediscover from the code alone —
 it does not duplicate the codebase or log every action taken here.
 
-**State as of this audit (2026-08-09):** v1 (auth, book search via Google
-Books, per-book reading tracking, genre-preference-based recommendations,
-home dashboard/list view) is built and merged to `main` on GitHub
-(`Jacob6908/libbro`, public). Since then, a persistent nav bar, real
-avatar upload with cropping, a floating word-shelf genre-preference modal,
-the genre palette promoted to the app's primary visual theme, a
-bookshelf-grid search redesign, search relevance ranking, and
-Netflix-style categorized recommendations have all shipped to
-`production` (PR #4, PR #5; #6 was closed unmerged and folded directly
-into `production`, confirming it remains the one working branch — see
-`runbooks/git-workflow.md`, unchanged). All of that is open as **PR #7**
-into `main`, not yet merged; local `main` is still 7 commits behind
-`origin/main` and needs syncing per `runbooks/git-workflow.md` once PR #7
-lands. Most recently, the standalone `/my-list` page was folded into
-`/profile`, and — the biggest single change so far — **user-curated
-bookshelves** were added, plus a read-only `/u/:username` view of
-another signed-in user's profile. This shipped in two fast iterations
-the same day: first with 5 default shelves auto-synced to reading status
-(`decisions/ADR-007-custom-bookshelves-and-profile-visibility.md`), then
-reworked hours later, after seeing it running, into a fully flat model —
-no default/custom distinction, one auto-seeded "My shelf" per profile,
-reading-status tracking kept but made completely independent of
-shelving (`decisions/ADR-008-flat-shelves-no-default-status-shelves.md`,
-current; `specs/bookshelves.md` describes the shipped behavior). Along
-the way a real bug (missing table-level `GRANT`s on the new tables,
-same class as a v1-era `book_genres` incident) was caught and fixed via
-browser testing — see `quality.md`. This is still a real product-
-direction shift on top of everything above: profiles are now visible to
-other signed-in users, narrowing (not removing) the "no social features"
-non-goal. Required live-schema changes applied directly against the
-Supabase project per `decisions/ADR-002` (current shape: `shelves`,
-`shelf_books` — the `public_reading_status` view from the first
-iteration was later dropped, see ADR-008). Verified end-to-end
-(lint/typecheck/build + two rounds of a background `/quality-check`
-subagent's browser-driven pass, including disposable-account tests of
-the signup-seeding trigger), committed to `production` alongside this
-vault reconciliation, and not yet pushed to `origin/production` as of
-this line being written — check `git log`/`git status` before assuming
-it's landed. See `working/issho-study.md`
+**State as of this audit (2026-08-09, later pass):** v1 through the
+bookshelves/flat-shelves rework (see this section's prior text, preserved
+in git history) is merged to `main` on GitHub (`Jacob6908/libbro`,
+public) — that whole arc landed via PR #8. Since then, three more
+changes shipped as **separate feature branches merged directly into
+`main`**, not through the old `production` branch — a workflow change
+worth knowing about, see `runbooks/git-workflow.md`:
+
+- **PR #10 (`login_updates`)** — a client-side auth/session hardening
+  pass (env validation, explicit client options, hardened session
+  hydration, redirect-when-authenticated on `/signin`/`/signup`, a
+  `/reset-password` session guard, stronger password rules, Chrome-
+  credential-manager workarounds) plus a visual redesign of `/signin`
+  and `/signup`. New this audit: `specs/auth.md` documents the result in
+  full — auth had grown enough non-obvious behavior that folding it into
+  `architecture.md` alone was no longer enough (see that document's
+  history for why it used to be handled that way).
+- **PR #11 (`small_tweaks`)** — a universal cursor-style CSS rule and a
+  couple of `ListEntryModal` bug fixes.
+- **PR #12 (`grainy_scroll`, open, not yet merged)** — sharper book cover
+  images and lazy/async decoding to reduce scroll jank.
+
+See `working/current-focus.md` for the fuller breakdown, `decisions/` and
+`specs/` for everything from PR #8 and earlier, `working/issho-study.md`
 for the read-only study of the reference app `issho` that informed the
-original choices, `decisions/` for the specific tradeoffs made, and
-`runbooks/git-workflow.md` for how changes get from the working branch
-into `main` (partially automated by the `/ship` skill).
+original architectural choices, and `runbooks/git-workflow.md` for the
+current PR workflow (and the older `production`-branch pattern it
+replaced).
 
 ## Documents
 
@@ -62,9 +47,12 @@ into `main` (partially automated by the `/ship` skill).
   (deliberate).
 - [`specs/`](specs/) — `book-metadata-import.md`, `reading-tracking.md`,
   `recommendations.md`, `avatar-upload.md`, `genre-preferences.md`,
-  `bookshelves.md`. Auth and the home/nav views are covered in
-  `architecture.md` rather than duplicated into specs, since they're
-  straightforward CRUD/UI without much non-obvious behavior.
+  `bookshelves.md`, `auth.md` (new this audit). The home/nav views are
+  still covered in `architecture.md` only, since they remain
+  straightforward CRUD/UI — auth used to be handled the same way, but
+  grew enough non-obvious behavior (browser-credential-manager
+  workarounds, redirect guards, a visual-consistency gap between auth
+  pages) to warrant its own spec.
 - [`decisions/`](decisions/) — eight ADRs: the five major choices made
   building v1 (Supabase as the whole backend, dashboard-managed schema,
   Google Books behind a provider interface, content-based-only

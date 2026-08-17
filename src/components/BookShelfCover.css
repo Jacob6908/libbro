@@ -38,6 +38,9 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: 260px 360px;
 }
 .shelf-card-btn:disabled {
   opacity: 0.5;
@@ -90,7 +93,6 @@
 }
 
 .shelf-card-placeholder {
-  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-page));
   display: flex;
   align-items: center;
   justify-content: center;

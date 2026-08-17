@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { useCoverImageSrc } from "../hooks/useCoverImageSrc";
+import { getTitleSpineColor } from "../lib/genreColors";
 import "./BookShelfCover.css";
 
 export default function BookShelfCover({
@@ -13,19 +15,25 @@ export default function BookShelfCover({
   /** Optional status/progress badge rendered under the caption (e.g. on the profile grid). */
   badge?: ReactNode;
 }) {
+  const { src, handleError } = useCoverImageSrc(coverImageUrl);
+
   return (
     <div className="shelf-card">
       <div className="shelf-card-cover">
-        {coverImageUrl ? (
+        {src ? (
           <img
-            src={coverImageUrl}
+            src={src}
             alt=""
             className="shelf-card-image"
             loading="lazy"
             decoding="async"
+            onError={handleError}
           />
         ) : (
-          <div className="shelf-card-placeholder">
+          <div
+            className="shelf-card-placeholder"
+            style={{ background: getTitleSpineColor(title) }}
+          >
             <span className="shelf-card-placeholder-title">{title}</span>
           </div>
         )}

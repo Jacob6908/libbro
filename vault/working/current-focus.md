@@ -1,62 +1,47 @@
 # Current Focus
 
-v1 of libbro (auth, book tracking, recommendations) was built and merged
-to `main` on GitHub (`Jacob6908/libbro`, public). Since then, a string of
-features shipped to `production` and are open as **PR #7** into `main`,
-not yet merged (nav bar, avatar upload, genre-preference modal, the
-genre palette as primary theme, the bookshelf-grid search redesign,
-search relevance ranking, categorized recommendations — see `decisions/`
-and `specs/` for each).
+v1 of libbro (auth, book tracking, recommendations) and the
+nav bar/avatar-upload/genre-modal/bookshelves work that followed are all
+merged to `main` (through PR #8; see `decisions/` and `specs/` for each
+feature, `runbooks/git-workflow.md`'s "History" section for the
+`production`-branch pattern that flow used).
 
-**Most recent work (2026-08-09), on top of all of the above — shipped in
-two fast iterations the same day:**
+**Since then, three more changes shipped as separate feature branches,
+each merged directly into `main`** (see `runbooks/git-workflow.md`'s
+"Current pattern"):
 
-- Folded the standalone `/my-list` page into `/profile`, which is now a
-  shelf-based "Your Books" view; editing username/bio/avatar/genres
-  moved into its own `ProfileEditModal`, reached via an "Edit profile"
-  button, separate from the browsing view.
-- **Iteration 1**: added bookshelves with 5 default shelves auto-synced
-  to reading status plus optional custom shelves, and made profiles
-  viewable by other signed-in users at `/u/:username` (read-only) —
-  `decisions/ADR-007-custom-bookshelves-and-profile-visibility.md`.
-  Required new live-schema objects (`shelves`, `shelf_books`, a
-  `public_reading_status` view) applied via
-  `mcp__supabase__apply_migration`, per `decisions/ADR-002`'s
-  established pattern. Hit the same bug class as `book_genres` did
-  during v1: both new tables shipped with correct RLS but no
-  table-level `GRANT`, causing every request to 403 until caught by
-  browser testing — see `quality.md`.
-- Added a new `/quality-check` skill (`.claude/skills/quality-check/`):
-  runs lint/typecheck/build plus a browser-driven verification pass in a
-  background subagent, so other work (like vault reconciliation) can
-  proceed in parallel instead of blocking on it.
-- **Iteration 2, hours later**: after reviewing iteration 1 running in
-  the app, the user asked to go further — drop the default/status-linked
-  shelf concept entirely in favor of full customizability. Shelves are
-  now flat (no `status_key` column at all); every profile gets exactly
-  one ordinary, auto-seeded "My shelf" instead of 5, renamable/deletable
-  like any shelf. Reading-status tracking (want to read/reading/
-  completed/on hold/dropped + progress/rating/notes) was kept but made
-  fully independent of shelving — still lives on `BookDetail.tsx`
-  exactly as before either iteration. The now-unneeded
-  `public_reading_status` view and its client function were deleted.
-  See `decisions/ADR-008-flat-shelves-no-default-status-shelves.md`
-  (current) and `specs/bookshelves.md` (rewritten to describe this
-  shape). ADR-007 is marked superseded, not edited, per this vault's
-  rule against rewriting accepted ADRs.
-- Verified end-to-end both times via two rounds of the `/quality-check`
-  skill (lint/typecheck/build + a background subagent's browser-driven
-  pass), including disposable-account tests of the signup-seeding
-  trigger both before and after the flat-shelves rework.
-- Committed to `production` alongside this vault reconciliation; not yet
-  pushed to `origin/production` or folded into PR #7.
+- **PR #10 (`login_updates`)** — a client-side auth/session hardening
+  pass: env-var validation at Supabase client creation, explicit auth
+  client options, hardened session hydration, sign-in/sign-up redirect-
+  when-already-authenticated, a session guard on `/reset-password`,
+  stronger password rules (8+ chars/digit/special char), and a set of
+  Chrome-credential-manager workarounds. Also redesigned `/signin` and
+  `/signup`'s visual layout (no card, big wordmark, horizontal
+  email/password row). See `specs/auth.md` (new this audit) for full
+  behavior and `working/2026-08-09-security-updates.md` for the original
+  session notes.
+- **PR #11 (`small_tweaks`)** — a universal `cursor: pointer`/
+  `not-allowed` CSS rule, a couple of `ListEntryModal.tsx` bugs fixed
+  (page/percent inputs couldn't be cleared while typing; a shared
+  TanStack Query cache key wasn't being invalidated after a status
+  change), and the nav label "Your Books" → "Your Library".
+- **PR #12 (`grainy_scroll`, open, not yet merged as of this audit)** —
+  book cover images upgraded to Google Books' `zoom=2` URL variant
+  (removes a decorative page-curl overlay, roughly doubles resolution)
+  plus `loading="lazy"`/`decoding="async"` on cover `<img>`s, to reduce
+  scroll jank in grids of 20+ covers.
 
-**Known gap from this work, not yet built:** shelf reordering exists at
-the service/hook layer (`reorderShelves`) but isn't wired to any UI
-control — see `working/open-questions.md`.
+**Known gaps surfaced by this audit, not yet resolved:**
 
-Not yet done, in rough priority order (see `working/open-questions.md`
-for the reasoning behind each):
+- `/forgot-password` and `/reset-password` still use the pre-redesign
+  boxed-card layout — visually inconsistent with `/signin`/`/signup`.
+- Whether the PR #10-12 feature-branch-per-change pattern is the new
+  permanent convention, replacing `production`, is unconfirmed.
+- The Chrome-specific credential-manager workarounds in `specs/auth.md`
+  haven't been checked in Safari/Firefox.
+
+Older, still-unresolved items carried forward (unchanged since the last
+audit — see `working/open-questions.md` for the reasoning behind each):
 
 - No CI/CD or deployment target has been chosen.
 - No automated test suite (deliberately deferred).
@@ -67,10 +52,8 @@ for the reasoning behind each):
 - Whether `profile_genre_preferences.weight` stays fixed at 2, is
   retired, or eventually gets driven by a real signal (see
   `specs/genre-preferences.md`).
-- Shelf reordering UI, and whether custom-shelf book-adding should
-  eventually move onto the shelf/profile view itself (see
-  `specs/bookshelves.md`'s "Out of scope").
-- No hover/`focus-visible` states on any button anywhere.
+- Shelf reordering UI (`reorderShelves` exists at the service/hook layer,
+  unwired to any UI control — see `specs/bookshelves.md`).
 - Whether the now-unused `getRecommendationsForUser`/`useRecommendations`
   flat-list code path should be kept, removed, or repurposed.
 - Whether the multi-query Google Books search strategy's higher request

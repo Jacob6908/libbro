@@ -1,5 +1,33 @@
 import { Link } from "react-router";
 import { useSimilarBooks } from "../hooks/useRecommendations";
+import { useCoverImageSrc } from "../hooks/useCoverImageSrc";
+import { getTitleSpineColor } from "../lib/genreColors";
+
+function SimilarBookCover({
+  title,
+  coverImageUrl,
+}: {
+  title: string;
+  coverImageUrl: string | null;
+}) {
+  const { src, handleError } = useCoverImageSrc(coverImageUrl);
+
+  return src ? (
+    <img
+      src={src}
+      alt=""
+      className="h-32 w-24 rounded object-cover"
+      loading="lazy"
+      decoding="async"
+      onError={handleError}
+    />
+  ) : (
+    <div
+      className="h-32 w-24 rounded"
+      style={{ background: getTitleSpineColor(title) }}
+    />
+  );
+}
 
 export default function SimilarBooks({ bookId }: { bookId: string }) {
   const { data: books, isLoading } = useSimilarBooks(bookId);
@@ -18,17 +46,10 @@ export default function SimilarBooks({ bookId }: { bookId: string }) {
             to={`/books/${book.id}`}
             className="w-24 flex-none text-center"
           >
-            {book.cover_image_url ? (
-              <img
-                src={book.cover_image_url}
-                alt=""
-                className="h-32 w-24 rounded object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <div className="h-32 w-24 rounded bg-gray-200" />
-            )}
+            <SimilarBookCover
+              title={book.title}
+              coverImageUrl={book.cover_image_url}
+            />
             <p className="mt-1 line-clamp-2 text-xs">{book.title}</p>
           </Link>
         ))}

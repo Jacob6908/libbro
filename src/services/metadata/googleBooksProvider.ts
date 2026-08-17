@@ -157,12 +157,25 @@ function getSignificantSearchTerms(query: string): string[] {
     .filter((term) => term.length >= 3 && !STOP_WORDS.has(term));
 }
 
+/**
+ * Order matters here, not just content: `search()` dedupes by first
+ * occurrence across these queries, and callers break scoring ties by that
+ * same order - so whichever variant runs first effectively wins ties. The
+ * raw query goes first because it's the one Google ranks by its own
+ * relevance/popularity signal (matching what books.google.com shows); the
+ * `intitle:` variants exist only to catch additional matches the raw query
+ * missed; run after so they can add recall without out-ranking it. It's
+ * also the query variant we've seen used for prefix-typed input (e.g. "don
+ * qu") most reliably returns something sensible - `intitle:"don qu"` as a
+ * literal quoted phrase can match unrelated titles that merely contain that
+ * substring.
+ */
 function getSearchQueries(query: string): string[] {
   const terms = getSignificantSearchTerms(query);
   const queries = [
+    query,
     query.split(/\s+/).length > 1 ? `intitle:"${query}"` : null,
     terms.length > 0 ? terms.map((term) => `intitle:${term}`).join(" ") : null,
-    query,
   ].filter((value): value is string => value != null);
 
   return [...new Set(queries)];

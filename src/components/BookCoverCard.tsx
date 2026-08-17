@@ -1,3 +1,6 @@
+import { useCoverImageSrc } from "../hooks/useCoverImageSrc";
+import { getTitleSpineColor } from "../lib/genreColors";
+
 export default function BookCoverCard({
   title,
   authors,
@@ -7,18 +10,24 @@ export default function BookCoverCard({
   authors: string[];
   coverImageUrl?: string | null;
 }) {
+  const { src, handleError } = useCoverImageSrc(coverImageUrl);
+
   return (
     <div className="flex items-center gap-3">
-      {coverImageUrl ? (
+      {src ? (
         <img
-          src={coverImageUrl}
+          src={src}
           alt=""
           className="h-16 w-11 flex-none rounded object-cover"
           loading="lazy"
           decoding="async"
+          onError={handleError}
         />
       ) : (
-        <div className="h-16 w-11 flex-none rounded bg-gray-200" />
+        <div
+          className="h-16 w-11 flex-none rounded"
+          style={{ background: getTitleSpineColor(title) }}
+        />
       )}
       <div>
         <p className="font-medium">{title}</p>

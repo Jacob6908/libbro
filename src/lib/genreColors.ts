@@ -21,3 +21,13 @@ export function buildGenreColorMap(genres: Genre[]): Map<number, string> {
     genres.map((genre, i) => [genre.id, SPINE_COLORS[i % SPINE_COLORS.length]])
   );
 }
+
+/** Same spine palette, picked deterministically per book so a given title
+ * always lands on the same color instead of shifting on every render. */
+export function getTitleSpineColor(title: string): string {
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) {
+    hash = (hash * 31 + title.charCodeAt(i)) | 0;
+  }
+  return SPINE_COLORS[Math.abs(hash) % SPINE_COLORS.length];
+}

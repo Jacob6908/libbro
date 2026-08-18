@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useBookSearch } from "../hooks/useBookSearch";
-import { importBookFromProvider } from "../api/bookImport";
+import { importBookFromGoogleBooks } from "../api/bookImport";
 import type { MergedSearchResult } from "../hooks/useBookSearch";
 import BookShelfCover from "../components/BookShelfCover";
 import "../components/BookShelfCover.css";
@@ -27,7 +27,7 @@ export default function BookSearch() {
   const openBook = useMutation({
     mutationFn: async (result: MergedSearchResult) => {
       if (result.localBook) return result.localBook;
-      return importBookFromProvider(result.externalId);
+      return importBookFromGoogleBooks(result.externalId);
     },
     onSuccess: (book) => {
       queryClient.invalidateQueries({ queryKey: ["books", "local-search"] });

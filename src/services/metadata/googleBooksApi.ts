@@ -1,18 +1,12 @@
-import type {
-  BookDetail,
-  BookMetadataProvider,
-  BookSearchResult,
-} from "./types";
-
 const GOOGLE_BOOKS_ENDPOINT = "https://www.googleapis.com/books/v1/volumes";
 const apiKey = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY as string | undefined;
 
-interface GoogleBooksIndustryIdentifier {
+export interface GoogleBooksIndustryIdentifier {
   type: string;
   identifier: string;
 }
 
-interface GoogleBooksVolumeInfo {
+export interface GoogleBooksVolumeInfo {
   title: string;
   subtitle?: string;
   authors?: string[];
@@ -28,7 +22,7 @@ interface GoogleBooksVolumeInfo {
   language?: string;
 }
 
-interface GoogleBooksVolume {
+export interface GoogleBooksVolume {
   id: string;
   volumeInfo: GoogleBooksVolumeInfo;
 }
@@ -54,12 +48,12 @@ const STOP_WORDS = new Set([
 
 async function fetchWithRetry(
   url: string,
-  { retries = 2 }: { retries?: number } = {}
+  { retries = 2, signal }: { retries?: number; signal?: AbortSignal } = {}
 ): Promise<Response> {
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
-    const response = await fetch(url);
+    const response = await fetch(url, { signal });
 
     if (response.ok) {
       return response;
@@ -68,7 +62,7 @@ async function fetchWithRetry(
     if (response.status === 429 || response.status >= 500) {
       lastError = new Error(`Google Books request failed: ${response.status}`);
       const backoffMs = 500 * 2 ** attempt;
-      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+      await abortableDelay(backoffMs, signal);
       continue;
     }
 
@@ -78,11 +72,27 @@ async function fetchWithRetry(
   throw lastError ?? new Error("Google Books request failed");
 }
 
-function extractIsbn(
-  identifiers: GoogleBooksIndustryIdentifier[] | undefined,
-  type: "ISBN_13" | "ISBN_10"
-): string | null {
-  return identifiers?.find((id) => id.type === type)?.identifier ?? null;
+function abortableDelay(delayMs: number, signal?: AbortSignal): Promise<void> {
+  if (!signal) {
+    return new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  if (signal.aborted) {
+    return Promise.reject(signal.reason);
+  }
+
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(resolve, delayMs);
+
+    signal.addEventListener(
+      "abort",
+      () => {
+        window.clearTimeout(timeoutId);
+        reject(signal.reason);
+      },
+      { once: true }
+    );
+  });
 }
 
 /**
@@ -91,10 +101,22 @@ function extractIsbn(
  * cells in the UI - that upscaling is what reads as blurry/grainy cover art.
  * The same underlying image is available larger via the `zoom` param (higher
  * = bigger) with the curl decoration removed via `edge`.
+ *
+ * This only holds for volumes that actually have a real front-cover scan,
+ * signaled by Google including `edge=curl` in the original URL. For older/
+ * library-catalog-only volumes (no `edge` param at all), asking for
+ * `zoom=2` doesn't return a bigger version of the same cover - it returns a
+ * different, degenerate asset (observed: a ~300x48px spine-label crop),
+ * which stretches into a giant blurry text fragment in the grid. Leave
+ * those untouched at their original zoom rather than "enhancing" them into
+ * garbage.
  */
-function enhanceCoverUrl(url: string): string {
+export function enhanceGoogleBooksCoverUrl(url: string): string {
   try {
     const enhanced = new URL(url.replace(/^http:/, "https:"));
+    if (!enhanced.searchParams.has("edge")) {
+      return enhanced.toString();
+    }
     enhanced.searchParams.set("zoom", "2");
     enhanced.searchParams.delete("edge");
     return enhanced.toString();
@@ -103,33 +125,20 @@ function enhanceCoverUrl(url: string): string {
   }
 }
 
-function toSearchResult(volume: GoogleBooksVolume): BookSearchResult {
-  const info = volume.volumeInfo;
-  return {
-    externalId: volume.id,
-    title: info.title,
-    subtitle: info.subtitle ?? null,
-    authors: info.authors ?? [],
-    coverImageUrl: info.imageLinks?.thumbnail
-      ? enhanceCoverUrl(info.imageLinks.thumbnail)
-      : null,
-    publishedDate: info.publishedDate ?? null,
-  };
-}
+/** Applies the cover-quality fix in place so every consumer gets it for free. */
+function withEnhancedCover(volume: GoogleBooksVolume): GoogleBooksVolume {
+  const thumbnail = volume.volumeInfo.imageLinks?.thumbnail;
+  if (!thumbnail) return volume;
 
-function toBookDetail(volume: GoogleBooksVolume): BookDetail {
-  const info = volume.volumeInfo;
   return {
-    ...toSearchResult(volume),
-    description: info.description ?? null,
-    isbn13: extractIsbn(info.industryIdentifiers, "ISBN_13"),
-    isbn10: extractIsbn(info.industryIdentifiers, "ISBN_10"),
-    pageCount: info.pageCount ?? null,
-    categories: info.categories ?? [],
-    publisher: info.publisher ?? null,
-    language: info.language ?? null,
-    averageRating: info.averageRating ?? null,
-    ratingsCount: info.ratingsCount ?? null,
+    ...volume,
+    volumeInfo: {
+      ...volume.volumeInfo,
+      imageLinks: {
+        ...volume.volumeInfo.imageLinks,
+        thumbnail: enhanceGoogleBooksCoverUrl(thumbnail),
+      },
+    },
   };
 }
 
@@ -140,10 +149,12 @@ function withApiKey(url: URL): URL {
   return url;
 }
 
+const COMBINING_DIACRITICS = new RegExp("[\\u0300-\\u036f]", "g");
+
 function normalizeSearchText(value: string): string {
   return value
     .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(COMBINING_DIACRITICS, "")
     .toLowerCase()
     .replace(/['’]/g, "")
     .replace(/[^a-z0-9]+/g, " ")
@@ -158,10 +169,10 @@ function getSignificantSearchTerms(query: string): string[] {
 }
 
 /**
- * Order matters here, not just content: `search()` dedupes by first
- * occurrence across these queries, and callers break scoring ties by that
- * same order - so whichever variant runs first effectively wins ties. The
- * raw query goes first because it's the one Google ranks by its own
+ * Order matters here, not just content: `searchGoogleBooks()` dedupes by
+ * first occurrence across these queries, and callers break scoring ties by
+ * that same order - so whichever variant runs first effectively wins ties.
+ * The raw query goes first because it's the one Google ranks by its own
  * relevance/popularity signal (matching what books.google.com shows); the
  * `intitle:` variants exist only to catch additional matches the raw query
  * missed; run after so they can add recall without out-ranking it. It's
@@ -181,17 +192,19 @@ function getSearchQueries(query: string): string[] {
   return [...new Set(queries)];
 }
 
-async function search(
+export async function searchGoogleBooks(
   query: string,
-  { limit = 20 }: { limit?: number } = {}
-): Promise<BookSearchResult[]> {
+  { limit = 20, signal }: { limit?: number; signal?: AbortSignal } = {}
+): Promise<GoogleBooksVolume[]> {
   const trimmed = query.trim();
   if (!trimmed) return [];
 
   const queries = getSearchQueries(trimmed);
 
   const results = await Promise.allSettled(
-    queries.map((searchQuery) => searchGoogleBooks(searchQuery, limit))
+    queries.map((searchQuery) =>
+      fetchGoogleBooksPage(searchQuery, limit, signal)
+    )
   );
   const successfulResults = results.flatMap((result) =>
     result.status === "fulfilled" ? result.value : []
@@ -202,31 +215,34 @@ async function search(
     if (rejected?.status === "rejected") throw rejected.reason;
   }
 
-  const byExternalId = new Map<string, BookSearchResult>();
-  for (const result of successfulResults) {
-    if (!byExternalId.has(result.externalId)) {
-      byExternalId.set(result.externalId, result);
+  const byId = new Map<string, GoogleBooksVolume>();
+  for (const volume of successfulResults) {
+    if (!byId.has(volume.id)) {
+      byId.set(volume.id, volume);
     }
   }
 
-  return [...byExternalId.values()].slice(0, limit);
+  return [...byId.values()].slice(0, limit);
 }
 
-async function searchGoogleBooks(
+async function fetchGoogleBooksPage(
   query: string,
-  limit: number
-): Promise<BookSearchResult[]> {
+  limit: number,
+  signal?: AbortSignal
+): Promise<GoogleBooksVolume[]> {
   const url = withApiKey(new URL(GOOGLE_BOOKS_ENDPOINT));
   url.searchParams.set("q", query);
   url.searchParams.set("maxResults", String(limit));
 
-  const response = await fetchWithRetry(url.toString());
+  const response = await fetchWithRetry(url.toString(), { signal });
   const data = (await response.json()) as GoogleBooksSearchResponse;
 
-  return (data.items ?? []).map(toSearchResult);
+  return (data.items ?? []).map(withEnhancedCover);
 }
 
-async function getById(externalId: string): Promise<BookDetail | null> {
+export async function getGoogleBookById(
+  externalId: string
+): Promise<GoogleBooksVolume | null> {
   const url = withApiKey(new URL(`${GOOGLE_BOOKS_ENDPOINT}/${externalId}`));
 
   const response = await fetch(url.toString());
@@ -240,11 +256,5 @@ async function getById(externalId: string): Promise<BookDetail | null> {
   }
 
   const volume = (await response.json()) as GoogleBooksVolume;
-  return toBookDetail(volume);
+  return withEnhancedCover(volume);
 }
-
-export const googleBooksProvider: BookMetadataProvider = {
-  providerName: "google_books",
-  search,
-  getById,
-};

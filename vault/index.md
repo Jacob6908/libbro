@@ -68,7 +68,7 @@ replaced).
   `recommendations.md`, `avatar-upload.md`, `genre-preferences.md`,
   `bookshelves.md`, `auth.md` (updated this audit — the `/forgot-
   password`/`/reset-password` redesign gap it documented is now closed).
-- [`decisions/`](decisions/) — nine ADRs. The five major choices made
+- [`decisions/`](decisions/) — ten ADRs. The five major choices made
   building v1 (Supabase as the whole backend, dashboard-managed schema,
   Google Books behind a provider interface — **superseded**, see below,
   content-based-only recommendations, deferring series/volume support),
@@ -77,15 +77,20 @@ replaced).
   (`ADR-007-custom-bookshelves-and-profile-visibility.md`, **superseded**
   in part; `ADR-008-flat-shelves-no-default-status-shelves.md`, current
   — together they narrow but don't remove the "no social features"
-  non-goal), and **`ADR-009-remove-book-metadata-provider-abstraction.md`
-  (new this audit, current)** — supersedes `ADR-003`, removing the
-  `BookMetadataProvider` interface in favor of consuming Google Books'
-  vendor shape directly. (The nav bar, avatar upload, genre-preference
-  modal, bookshelf-grid search redesign, search relevance ranking,
-  categorized recommendations, and folding `/my-list` into `/profile`
-  were all routine feature additions/refinements following existing
-  decisions, not new architectural tradeoffs — documented in
-  `architecture.md`/`specs/` instead of new ADRs. Whether to keep
+  non-goal), `ADR-009-remove-book-metadata-provider-abstraction.md` —
+  supersedes `ADR-003`, removing the `BookMetadataProvider` interface in
+  favor of consuming Google Books' vendor shape directly — and
+  **`ADR-010-floating-hover-as-interaction-pattern.md` (new, current)**
+  — a NavBar rework (background-free nav, hover-only lift with optional
+  tilt, no ambient motion, persistent color mark instead of a persistent
+  active-state transform) established "floating hover" as the app's
+  general interaction pattern going forward, not scoped to the nav bar.
+  (Avatar upload, genre-preference modal, bookshelf-grid search
+  redesign, search relevance ranking, categorized recommendations, and
+  folding `/my-list` into `/profile` remain routine feature
+  additions/refinements following existing decisions, not new
+  architectural tradeoffs — documented in `architecture.md`/`specs/`
+  instead of new ADRs. Whether to keep
   `profile_genre_preferences.weight` long-term was discussed but not
   decided — see `working/open-questions.md`, not an ADR, since nothing
   was actually settled there.)

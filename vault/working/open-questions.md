@@ -5,26 +5,24 @@ Answer these with real evidence when it appears — don't guess.
 
 ## Git workflow
 
-- **Is the feature-branch-per-change pattern (PRs #10, #11, #12 —
-  `login_updates`, `small_tweaks`, `grainy_scroll`, each merged directly
-  into `main`) a deliberate, permanent replacement for the old
-  single-`production`-branch pattern (PRs #1-#8), or ad hoc?** `production`
-  is now 10 commits behind `main` with nothing unique on it, i.e.
-  effectively abandoned in practice — but nothing states this explicitly.
-  Why it matters: `runbooks/git-workflow.md` now documents both patterns;
-  if the new one is permanent, `production` (and possibly other stale
-  branches — `new_nav`, `book_style` — also have no commits beyond what's
-  already in `main`) could be deleted; if not, the runbook needs to say
-  which pattern to use when.
+- **Is the feature-branch-per-change pattern (now PRs #10-#14, each
+  merged directly into `main` with a real merge commit) a deliberate,
+  permanent replacement for the old single-`production`-branch pattern
+  (PRs #1-#8), or ad hoc?** Five consecutive PRs now follow it and
+  `production` hasn't been touched since PR #8 — strong evidence, but
+  still not stated as policy anywhere. Why it matters: `runbooks/
+  git-workflow.md` documents both patterns; if the new one is confirmed
+  permanent, the stale branches below could be cleaned up.
+- **Stale branch cleanup**: verified this audit that `production`,
+  `book_style`, `login_updates`, and `small_tweaks` are all fully merged
+  into `main` with no unique commits, and still exist as remote
+  branches. (`grainy_scroll`, `better_covers`, and `issho-style-search`
+  were already deleted after merging — branch deletion looks like it's
+  becoming the norm going forward.) Not deleted as part of this audit
+  (documentation-only pass; branch deletion wasn't requested).
 
 ## Auth
 
-- **When (if ever) do `/forgot-password` and `/reset-password` get the
-  same visual redesign `/signin`/`/signup` already have** (no-card
-  layout, big wordmark, `Auth.css`)? They currently still use the older
-  boxed-card layout. Why it matters: the auth pages read as visually
-  inconsistent with each other right now — someone should decide whether
-  this is a "not yet gotten to" gap or an intentional pause.
 - **Do the Chrome-credential-manager workarounds in `specs/auth.md`
   (masked `type="text"` password fields, fully manual form submission,
   tuned `autocomplete`) work correctly, or even matter, in Safari and
@@ -45,6 +43,20 @@ Answer these with real evidence when it appears — don't guess.
 
 ## Architecture
 
+- **Should `{ validateAspectRatio: true }` be wired into
+  `BookCoverCard.tsx`, `BookShelfCover.tsx`, and `SimilarBooks.tsx`, not
+  just `BookDetail.tsx`?** Verified this audit: `useCoverImageSrc`'s
+  aspect-ratio-based `zoom=1` fallback (PR #13) only runs where that flag
+  is passed, and only `BookDetail.tsx` passes it. Separately, PR #14
+  added a different, URL-construction-time fix for an overlapping cause
+  (`enhanceGoogleBooksCoverUrl`'s `edge=curl` check). The two fixes were
+  never reconciled into one approach and live in different files. Why it
+  matters: right now a broken cover is prevented in the search
+  grid/similar-books/cover-card contexts only by the `edge=curl` check,
+  with no runtime safety net if that heuristic misses a case — unlike
+  `BookDetail.tsx`, which has both. Someone should decide whether to
+  extend `validateAspectRatio` everywhere, rely on the `edge=curl` check
+  alone, or keep both as belt-and-suspenders.
 - **Is a Google Books API key actually provisioned and
   referrer-restricted?** The code reads `VITE_GOOGLE_BOOKS_API_KEY` but
   whether a real, properly restricted key is configured wasn't
@@ -53,7 +65,7 @@ Answer these with real evidence when it appears — don't guess.
   ~1000/day, and this matters more now — see the next item.
 - **Is the increased Google Books request volume from the new
   multi-query search strategy a problem?** As of 2026-08-07,
-  `googleBooksProvider.ts` issues up to 3 parallel API requests per
+  `googleBooksApi.ts` issues up to 3 parallel API requests per
   search keystroke (exact-phrase, per-term, raw) instead of 1, to
   improve match recall — see `architecture.md`'s "Search result
   ranking". Why it matters: this multiplies quota consumption 2-3x per

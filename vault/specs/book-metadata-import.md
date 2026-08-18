@@ -1,15 +1,21 @@
 ---
 status: implemented
-last-reviewed: 2026-08-07
+last-reviewed: 2026-08-18
 ---
 
 # Book metadata import
 
 ## Goal
 
-Let a user search for and add real books, sourced from Google Books, via
-an abstraction that doesn't hardcode the vendor throughout the app (see
-`decisions/ADR-003-google-books-behind-provider-interface.md`).
+Let a user search for and add real books, sourced from Google Books.
+**As of `decisions/ADR-009-remove-book-metadata-provider-abstraction.md`
+(2026-08-18), this is deliberately *not* behind a vendor-neutral
+abstraction** — `src/services/metadata/googleBooksApi.ts` exports
+Google Books' own response shape (`GoogleBooksVolume`) and the rest of
+the app consumes it directly. `decisions/
+ADR-003-google-books-behind-provider-interface.md`, superseded by
+ADR-009, has the original abstraction and its rationale for the
+historical record.
 
 ## User behavior
 
@@ -31,10 +37,13 @@ box.
 
 ## Requirements
 
-- `BookMetadataProvider` interface (`search`, `getById`) is the only
-  thing the rest of the app depends on — no consumer imports Google
-  Books types directly except `googleBooksProvider.ts` itself.
-- Import (`importBookFromProvider`): look up by `(provider, external_id)`;
+- `googleBooksApi.ts` exports `searchGoogleBooks()`, `getGoogleBookById()`,
+  and the `GoogleBooksVolume`/`GoogleBooksVolumeInfo` types directly;
+  `api/bookMapping.ts`, `api/bookImport.ts`, and `hooks/useBookSearch.ts`
+  all consume `GoogleBooksVolume` by field name
+  (`volume.volumeInfo.title`, etc.) rather than a translated
+  provider-neutral type. There is no interface layer as of ADR-009.
+- Import (`importBookFromGoogleBooks`): look up by `(provider, external_id)`;
   if found and `fetched_at` is within 14 days, return the cached row
   as-is; otherwise fetch fresh, map, and upsert.
 - Mapping strips embedded HTML from descriptions (Google Books
@@ -76,8 +85,10 @@ its own metadata cache table.
 
 ## Out of scope
 
-- Any provider other than Google Books (the interface supports adding
-  one; none exists yet).
+- Any metadata source other than Google Books — as of ADR-009 there is
+  no abstraction layer, so adding one would mean editing
+  `googleBooksApi.ts`'s call sites directly (or reintroducing an
+  interface at that point).
 - Scheduled/background refresh — caching is refresh-on-read only, since
   there's no server to run a cron job on.
 

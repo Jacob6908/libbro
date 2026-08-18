@@ -2,11 +2,24 @@
 
 Repo: `github.com/Jacob6908/libbro` (public). **The convention changed
 partway through this project — see "History" below.** As of this audit
-(2026-08-09), the observed pattern for the three most recent PRs (#10,
-#11, #12) is a dedicated feature branch per change, merged straight into
-`main` — `production` is not part of the flow anymore in practice.
+(2026-08-18), the observed pattern for the five most recent PRs (#10-#14)
+is a dedicated feature branch per change, merged straight into `main`
+with a real merge commit — `production` has not been touched since
+PR #8. Verified this audit via `git merge-base --is-ancestor` (and, for
+branches already deleted, by confirming the feature commit's hash
+appears directly in `main`'s history): all of `production`, `book_style`,
+`login_updates`, `small_tweaks`, `grainy_scroll`, and `better_covers` are
+fully merged into `main` — none has a commit that isn't already there.
+**Branch deletion after merge**: the three most recent merges (PR #12,
+#13, #14 — `grainy_scroll`, `better_covers`, `issho-style-search`) had
+their remote branches deleted; the earlier ones (`login_updates`,
+`small_tweaks`, plus the older `production`/`book_style`) are still
+present remotely, stale. Looks like deletion-after-merge is becoming the
+practice, but isn't retroactively applied — those four stale branches
+are cleanup candidates, not deleted as part of this documentation-only
+audit.
 
-## Current pattern (PRs #10, #11, #12 — verified via `gh pr list`)
+## Current pattern (PRs #10-#14 — verified via `gh pr list`)
 
 1. Work on a new, purpose-named branch off `main` (e.g. `login_updates`,
    `small_tweaks`, `grainy_scroll` — named for the change, not a fixed
@@ -25,9 +38,8 @@ partway through this project — see "History" below.** As of this audit
    changed.
 5. Merge it: `gh pr merge <number> --merge --delete-branch=false` — a
    real merge commit, not squash or rebase. Whether the feature branch
-   itself gets deleted after merging isn't consistently established
-   yet (`login_updates`/`small_tweaks` still exist as remote branches
-   as of this audit).
+   itself gets deleted after merging isn't consistently established —
+   see the branch-deletion note above.
 6. Sync local `main`:
    ```
    git checkout main
@@ -41,16 +53,17 @@ partway through this project — see "History" below.** As of this audit
 PRs #1-#8 all used a single long-lived `production` branch as the head
 for every PR into `main` (see `git-workflow.md`'s prior version, and
 `decisions/`/`working/` notes from that period that still say
-"production"). As of this audit, `production` is **10 commits behind
-`main`** and has nothing merged from it that isn't already in `main` —
-it's stale, not in active use. **Unknown**: whether abandoning
-`production` for feature branches was a deliberate, permanent
-convention change, or just what happened to fit these three specific
-changes — see `working/open-questions.md`. Older vault text (ADRs,
-older working notes) that refers to "the `production` branch" is
-describing what was true when it was written, not necessarily the
-current pattern — don't assume it still applies without checking
-`gh pr list` first.
+"production"). As of this audit, `production` is well behind `main` and
+has nothing merged from it that isn't already in `main` — confirmed
+stale via `git merge-base --is-ancestor`, not in active use.
+**Unknown**: whether abandoning `production` for feature branches was a
+deliberate, permanent convention change, or just what happened to fit
+these five specific changes — see `working/open-questions.md`, though
+five-for-five (PRs #10-#14) is fairly strong evidence at this point.
+Older vault text (ADRs, older working notes) that refers to "the
+`production` branch" is describing what was true when it was written,
+not necessarily the current pattern — don't assume it still applies
+without checking `gh pr list` first.
 
 ## Why `main` used to show "behind" after every merge (production-era only)
 

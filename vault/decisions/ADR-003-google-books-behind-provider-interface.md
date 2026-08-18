@@ -1,7 +1,15 @@
 ---
-status: accepted
+status: superseded
 date: 2026-07-26
 ---
+
+> **Superseded 2026-08-18** by
+> `ADR-009-remove-book-metadata-provider-abstraction.md`. The
+> `BookMetadataProvider` interface described below was removed — kept
+> here unedited for the historical record of why it was introduced, per
+> this vault's rule against rewriting accepted ADRs. Google Books is
+> still the metadata source; only the abstraction-boundary decision
+> changed.
 
 # ADR-003: Google Books as the metadata source, behind a provider interface
 

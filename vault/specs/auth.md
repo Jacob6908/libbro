@@ -1,6 +1,6 @@
 ---
 status: implemented
-last-reviewed: 2026-08-09
+last-reviewed: 2026-08-18
 ---
 
 # Auth
@@ -45,15 +45,17 @@ layout: `/signin`, `/signup`, `/forgot-password`, `/reset-password`.
   `/signin` with `replace: true` explicitly, rather than relying on
   `onAuthStateChange` + `RequireAuth`'s redirect to happen eventually.
 
-Visual design: `/signin` and `/signup` share a redesigned layout
+Visual design: all four auth pages share the same redesigned layout
 (`src/pages/Auth.css`, `auth-page`/`auth-wordmark`/`auth-row`/
 `auth-field` classes) — no card, a large centered "libbro" wordmark,
-email and password side by side, a centered filled `bg-primary` submit
-button below. **`/forgot-password` and `/reset-password` have not been
-updated to match** — they still use the older boxed-card layout
-(`mx-auto flex min-h-screen max-w-sm flex-col ... px-4`, `bg-white`
-bordered inputs). This is a known inconsistency, not an oversight to
-silently fix — see `working/open-questions.md`.
+a centered filled `bg-primary` submit button below the form.
+`/forgot-password` and `/reset-password` were extended to match
+`/signin`/`/signup` in PR #13 (`better_covers`, merged 2026-08-17) —
+verified by reading both pages' source (`src/pages/ForgotPassword.tsx`,
+`src/pages/ResetPassword.tsx`), which now import `./Auth.css` and use
+the same `auth-page`/`auth-wordmark`/`auth-form`/`auth-row`/`auth-field`
+structure as `SignIn.tsx`/`SignUp.tsx`. This closes what was previously
+documented here as a known visual inconsistency.
 
 ## Requirements
 
@@ -128,14 +130,19 @@ Verified during the original session
 batch; a local dev server smoke-tested `/`, `/signin`, `/signup`,
 `/reset-password` all returning `200 OK`.
 
-Re-verified during this audit (2026-08-09, later pass): `npm run lint`,
-`npx tsc -b --noEmit`, and `npm run build` all pass against the current
+Re-verified 2026-08-09 (later pass): `npm run lint`, `npx tsc -b
+--noEmit`, and `npm run build` all pass against the current
 `grainy_scroll` branch tip. `/signup` and `/signin` were also checked
 directly in a browser (screenshot) — wordmark, horizontal email/password
 row, live password-requirement checklist, and the centered filled
 submit button all render as designed.
 
-Not verified in either session: no automated regression test exists for
+Re-verified 2026-08-18: the shared-layout claim above for
+`/forgot-password`/`/reset-password` was confirmed by reading both
+pages' current source on `main` (not a fresh browser screenshot this
+pass).
+
+Not verified in any session: no automated regression test exists for
 any of this (no test suite in the project at all — see `quality.md`),
 and the browser-credential-manager behavior has only been checked in
 Chrome, not Safari or Firefox.
@@ -174,8 +181,6 @@ un-started Supabase-side or broader application-security tasks.
 
 ## Out of scope
 
-- Visually redesigning `/forgot-password` and `/reset-password` to
-  match the `/signin`/`/signup` layout — see `working/open-questions.md`.
 - MFA, rate limiting/bot protection, OAuth — none exist; email/password
   only (unchanged from before this work, see `architecture.md`).
 - Server-side/Supabase-side password policy enforcement — the 8-char +
@@ -188,16 +193,16 @@ un-started Supabase-side or broader application-security tasks.
 Implemented. `src/supabase-client.ts`, `src/context/AuthProvider.tsx`,
 `src/context/AuthContext.tsx`, `src/components/RequireAuth.tsx`,
 `src/components/RedirectIfAuthenticated.tsx`, `src/lib/authValidation.ts`,
-`src/pages/SignIn.tsx`, `src/pages/SignUp.tsx`,
-`src/pages/ForgotPassword.tsx` (not visually updated, see above),
-`src/pages/ResetPassword.tsx` (session-guard/validation updated, not
-visually redesigned), `src/pages/Auth.css`, `src/components/NavBar.tsx`
-(sign-out navigation). Shipped via branch `login_updates`, PR #10,
-merged to `main`.
+`src/pages/SignIn.tsx`, `src/pages/SignUp.tsx`, `src/pages/Auth.css`,
+`src/components/NavBar.tsx` (sign-out navigation) — shipped via branch
+`login_updates`, PR #10, merged to `main`. `src/pages/ForgotPassword.tsx`
+and `src/pages/ResetPassword.tsx` got their session-guard/validation
+behavior in PR #10 and their matching visual redesign later, in PR #13
+(`better_covers`, merged 2026-08-17) — both pages now fully match this
+spec.
 
 ## Open questions
 
-Whether/when `/forgot-password` and `/reset-password` get the same
-visual redesign as `/signin`/`/signup`; whether the Chrome-specific
-credential-manager workarounds need verification (or a different
-approach) in Safari/Firefox — see `working/open-questions.md` for both.
+Whether the Chrome-specific credential-manager workarounds need
+verification (or a different approach) in Safari/Firefox — see
+`working/open-questions.md`.

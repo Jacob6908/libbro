@@ -4,27 +4,45 @@ Entry point for `libbro`'s knowledge base. Documents durable project
 knowledge that would be hard or risky to rediscover from the code alone —
 it does not duplicate the codebase or log every action taken here.
 
-**State as of this audit (2026-08-09, later pass):** v1 through the
-bookshelves/flat-shelves rework (see this section's prior text, preserved
-in git history) is merged to `main` on GitHub (`Jacob6908/libbro`,
-public) — that whole arc landed via PR #8. Since then, three more
-changes shipped as **separate feature branches merged directly into
-`main`**, not through the old `production` branch — a workflow change
-worth knowing about, see `runbooks/git-workflow.md`:
+**State as of this audit (2026-08-18):** v1 through the bookshelves/
+flat-shelves rework is merged to `main` on GitHub (`Jacob6908/libbro`,
+public) — that whole arc landed via PR #8. Since then, **five more
+changes have shipped as separate feature branches merged directly into
+`main`** with real merge commits (verified via `gh pr list`) — not
+through the old `production` branch, which has been untouched since
+PR #8. See `runbooks/git-workflow.md`.
 
 - **PR #10 (`login_updates`)** — a client-side auth/session hardening
-  pass (env validation, explicit client options, hardened session
-  hydration, redirect-when-authenticated on `/signin`/`/signup`, a
-  `/reset-password` session guard, stronger password rules, Chrome-
-  credential-manager workarounds) plus a visual redesign of `/signin`
-  and `/signup`. New this audit: `specs/auth.md` documents the result in
-  full — auth had grown enough non-obvious behavior that folding it into
-  `architecture.md` alone was no longer enough (see that document's
-  history for why it used to be handled that way).
+  pass plus a visual redesign of `/signin`/`/signup`. See `specs/auth.md`.
 - **PR #11 (`small_tweaks`)** — a universal cursor-style CSS rule and a
   couple of `ListEntryModal` bug fixes.
-- **PR #12 (`grainy_scroll`, open, not yet merged)** — sharper book cover
-  images and lazy/async decoding to reduce scroll jank.
+- **PR #12 (`grainy_scroll`)** — merged 2026-08-10. Sharper book cover
+  images (`zoom=2` Google Books URL variant) and lazy/async decoding to
+  reduce scroll jank.
+- **PR #13 (`better_covers`)** — merged 2026-08-17. Extended the
+  `/signin`/`/signup` visual redesign to `/forgot-password` and
+  `/reset-password` (the previously-open visual-inconsistency gap is now
+  closed); added a cover-image runtime fallback
+  (`hooks/useCoverImageSrc.ts` + `lib/googleBooksCoverUrl.ts`) that
+  detects a broken/over-cropped cover via its rendered aspect ratio and
+  retries at `zoom=1` — **but only wired up on `BookDetail.tsx`**;
+  `BookShelfCover.tsx`, `BookCoverCard.tsx`, and `SimilarBooks.tsx` all
+  call the same hook without enabling it, so the search grid and other
+  list contexts don't get the same protection — see
+  `working/open-questions.md`.
+- **PR #14 (`issho-style-search`)** — merged 2026-08-18. Supersedes
+  `decisions/ADR-003-google-books-behind-provider-interface.md` (see
+  `decisions/ADR-009-remove-book-metadata-provider-abstraction.md`,
+  **new this audit**): removes the `BookMetadataProvider` interface so
+  search/import code consumes Google Books' vendor shape directly,
+  matching how the reference app `issho` handles `AniListMedia`. Bundled
+  with an independent fix to the cover-URL enhancement logic (only
+  requests `zoom=2` when Google's own `edge=curl` marker is present on
+  the original thumbnail URL — verified empirically that volumes without
+  it return a degenerate cropped asset at `zoom=2`, not a bigger cover).
+  This fix and PR #13's `validateAspectRatio` fallback address the same
+  underlying bug through different, uncoordinated mechanisms — see
+  `working/open-questions.md`.
 
 See `working/current-focus.md` for the fuller breakdown, `decisions/` and
 `specs/` for everything from PR #8 and earlier, `working/issho-study.md`
@@ -45,32 +63,29 @@ replaced).
   each re-verified during this audit; the new `/quality-check` skill for
   background browser-driven verification; no automated test suite exists
   (deliberate).
-- [`specs/`](specs/) — `book-metadata-import.md`, `reading-tracking.md`,
+- [`specs/`](specs/) — `book-metadata-import.md` (rewritten this audit
+  for ADR-009 — no more provider abstraction), `reading-tracking.md`,
   `recommendations.md`, `avatar-upload.md`, `genre-preferences.md`,
-  `bookshelves.md`, `auth.md` (new this audit). The home/nav views are
-  still covered in `architecture.md` only, since they remain
-  straightforward CRUD/UI — auth used to be handled the same way, but
-  grew enough non-obvious behavior (browser-credential-manager
-  workarounds, redirect guards, a visual-consistency gap between auth
-  pages) to warrant its own spec.
-- [`decisions/`](decisions/) — eight ADRs: the five major choices made
+  `bookshelves.md`, `auth.md` (updated this audit — the `/forgot-
+  password`/`/reset-password` redesign gap it documented is now closed).
+- [`decisions/`](decisions/) — nine ADRs. The five major choices made
   building v1 (Supabase as the whole backend, dashboard-managed schema,
-  Google Books behind a provider interface, content-based-only
-  recommendations, deferring series/volume support),
+  Google Books behind a provider interface — **superseded**, see below,
+  content-based-only recommendations, deferring series/volume support),
   `ADR-006-genre-palette-as-primary-theme.md` for the app's first
-  color/visual-theme system, and the two newest, same-day ADRs covering
-  bookshelves: `ADR-007-custom-bookshelves-and-profile-visibility.md`
-  (**superseded** in part — kept for the historical record, see its own
-  header) introduced shelves and made profiles viewable by other
-  signed-in users; `ADR-008-flat-shelves-no-default-status-shelves.md`
-  (current) replaced its default/custom shelf model with a flat one.
-  Together they narrow (but don't remove) the "no social features"
-  non-goal. (The nav bar, avatar upload, genre-preference modal,
-  bookshelf-grid search redesign, search relevance ranking, categorized
-  recommendations, and folding `/my-list` into `/profile` were all
-  routine feature additions/refinements following existing decisions,
-  not new architectural tradeoffs — documented in `architecture.md`/
-  `specs/` instead of new ADRs. Whether to keep
+  color/visual-theme system, the two same-day ADRs covering bookshelves
+  (`ADR-007-custom-bookshelves-and-profile-visibility.md`, **superseded**
+  in part; `ADR-008-flat-shelves-no-default-status-shelves.md`, current
+  — together they narrow but don't remove the "no social features"
+  non-goal), and **`ADR-009-remove-book-metadata-provider-abstraction.md`
+  (new this audit, current)** — supersedes `ADR-003`, removing the
+  `BookMetadataProvider` interface in favor of consuming Google Books'
+  vendor shape directly. (The nav bar, avatar upload, genre-preference
+  modal, bookshelf-grid search redesign, search relevance ranking,
+  categorized recommendations, and folding `/my-list` into `/profile`
+  were all routine feature additions/refinements following existing
+  decisions, not new architectural tradeoffs — documented in
+  `architecture.md`/`specs/` instead of new ADRs. Whether to keep
   `profile_genre_preferences.weight` long-term was discussed but not
   decided — see `working/open-questions.md`, not an ADR, since nothing
   was actually settled there.)

@@ -1,9 +1,10 @@
 # Architecture
 
-Verified against the repo and the live Supabase project, most recently
-during the 2026-08-07 audit. Schema/RLS facts were confirmed by querying
-the live project directly (schema is not in git — see below) rather than
-assumed from prior notes.
+Verified against the repo most recently during the 2026-08-18 audit
+(source-level re-check of the auth pages, book-metadata integration, and
+cover-image handling below). Schema/RLS facts are carried forward from
+the 2026-08-07 live-project query, not re-queried this pass — see below
+for how to re-verify those before relying on exact column details.
 
 ## Stack
 
@@ -20,10 +21,11 @@ Client-only SPA, no custom backend server:
   browser via `@supabase/supabase-js` with the anon/publishable key
   (`src/supabase-client.ts`). No service-role usage anywhere in `src/`.
   See `decisions/ADR-001-supabase-as-backend.md`.
-- **External data**: Google Books Volumes API, behind a
-  `BookMetadataProvider` interface (see below) rather than called
-  directly throughout the app. See
-  `decisions/ADR-003-google-books-behind-provider-interface.md`.
+- **External data**: Google Books Volumes API, called directly — no
+  provider-abstraction interface. `decisions/
+  ADR-003-google-books-behind-provider-interface.md` originally put one
+  in; `decisions/ADR-009-remove-book-metadata-provider-abstraction.md`
+  (2026-08-18) removed it. See "Book metadata integration" below.
 - **Deployment**: unknown — no CI/CD config, no `vercel.json` or
   equivalent, no deployment docs exist in this repo. See
   `working/open-questions.md`.
@@ -32,23 +34,30 @@ Client-only SPA, no custom backend server:
 
 ```
 src/
-  api/          bookImport.ts, bookMapping.ts — provider-agnostic import/mapping
+  api/          bookImport.ts, bookMapping.ts — Google Books-specific
+                 import/mapping (no provider abstraction, see ADR-009)
   components/   shared UI (NavBar, AppShell, BookCoverCard, ListEntryEditor,
                  ListEntryModal, ShelfPicker, ProfileEditModal,
                  GenrePreferencePicker, GenrePreferenceModal, AvatarImage,
                  AvatarCropModal, ...)
   context/      AuthContext / AuthProvider
   hooks/        one hook per data concern (useAuth, useMyList, useShelves,
-                 useShelfBooks, usePublicProfile, useRecommendations, ...)
+                 useShelfBooks, usePublicProfile, useRecommendations, ...);
+                 useCoverImageSrc.ts (added PR #13) is presentational, not
+                 data-fetching — see "Cover-image runtime fallback" below
   lib/          pure helpers (genreMapping.ts — category string -> genre slug;
                  genreColors.ts — genre id -> cycling accent color;
                  statusColors.ts — reading-status id -> color/label, shared by
                  the tracking modal and the shelf grid;
-                 cropImage.ts — canvas crop-to-fixed-size utility)
+                 cropImage.ts — canvas crop-to-fixed-size utility;
+                 googleBooksCoverUrl.ts — zoom=1 fallback URL for a broken
+                 cover, added PR #13)
   pages/        one component per route (Profile.tsx = own, editable;
                  PublicProfile.tsx = another user's, read-only)
   services/
-    metadata/   BookMetadataProvider interface + googleBooksProvider implementation
+    metadata/   googleBooksApi.ts — search/fetch functions returning
+                 Google Books' own response shape directly (no interface,
+                 see ADR-009; renamed from googleBooksProvider.ts)
     supabase/   thin per-table query functions (books.ts, listEntries.ts,
                  shelves.ts, ...)
     recommendations.ts   scoring logic, no DB-side logic
@@ -224,28 +233,37 @@ workarounds (masked `type="text"` fields instead of `type="password"`,
 fully manual form submission, tuned `autocomplete`/`data-*ignore`
 attributes) — non-obvious from the code alone without knowing *why*, see
 `specs/auth.md` for the full rationale and what's still unverified
-(Chrome only, not Safari/Firefox). `/signin` and `/signup` share a
-redesigned card-less layout (`src/pages/Auth.css`); `/forgot-password`
-and `/reset-password` still use the older boxed-card layout — a known,
-open inconsistency (`specs/auth.md`, `working/open-questions.md`).
+(Chrome only, not Safari/Firefox). All four auth pages now share the
+redesigned card-less layout (`src/pages/Auth.css`, `auth-page`/
+`auth-wordmark`/`auth-row`/`auth-field` classes) — `/forgot-password`
+and `/reset-password` were extended to match `/signin`/`/signup` in
+PR #13 (`better_covers`, merged 2026-08-17), closing what was previously
+a documented visual inconsistency (`specs/auth.md`).
 
 Email confirmation is currently **disabled** on the Supabase project (a
 dashboard setting, not code) — signup returns a live session immediately.
 
 ## Book metadata integration
 
-`src/services/metadata/types.ts` defines `BookMetadataProvider`
-(`search()`, `getById()`); `googleBooksProvider.ts` is the only file that
-knows Google Books' actual response shape. `api/bookMapping.ts` maps a
-provider `BookDetail` to a `books` row, stripping embedded HTML from
-descriptions and resolving categories to genre ids (static regex table in
-`lib/genreMapping.ts` first, `category_aliases` cache second).
-`api/bookImport.ts::importBookFromProvider` is the write-through cache:
-return the cached row if `fetched_at` is within a 14-day TTL, otherwise
-fetch/map/upsert. Search (`BookSearch.tsx`) merges a local Postgres
-full-text query against `books.search_vector` with a live, debounced
-query against the provider — local results are instant, remote-only
-results get imported on click, not on every keystroke. Results render as
+**As of `decisions/ADR-009-remove-book-metadata-provider-abstraction.md`
+(2026-08-18, PR #14), there is no provider-abstraction interface.**
+`src/services/metadata/googleBooksApi.ts` (renamed from
+`googleBooksProvider.ts`) exports `searchGoogleBooks()`,
+`getGoogleBookById()`, and Google Books' own response types
+(`GoogleBooksVolume`, `GoogleBooksVolumeInfo`) directly.
+`api/bookMapping.ts::mapGoogleBooksVolumeToRow` maps a `GoogleBooksVolume`
+straight to a `books` row (reading `volume.volumeInfo.title` etc. by
+field name), stripping embedded HTML from descriptions and resolving
+categories to genre ids (static regex table in `lib/genreMapping.ts`
+first, `category_aliases` cache second) — the same pattern the reference
+app `issho` uses in `api/animeMapping.ts` with `AniListMedia`.
+`api/bookImport.ts::importBookFromGoogleBooks` is the write-through
+cache: return the cached row if `fetched_at` is within a 14-day TTL,
+otherwise fetch/map/upsert. Search (`BookSearch.tsx`,
+`hooks/useBookSearch.ts`) merges a local Postgres full-text query against
+`books.search_vector` with a live, debounced query against
+`searchGoogleBooks()` — local results are instant, remote-only results
+get imported on click, not on every keystroke. Results render as
 a five-per-row bookshelf grid (`components/BookShelfCover.tsx` +
 `BookShelfCover.css`): a fixed `aspect-ratio` box with an
 absolutely-positioned cover image (not a percentage-height child) keeps
@@ -272,28 +290,66 @@ them, so a book Google Books or Postgres considered a match (e.g. via
 stemming, or a field this scorer doesn't look at) never silently
 disappears.
 
-On the remote side, `googleBooksProvider.ts`'s `search()` now issues up
+On the remote side, `googleBooksApi.ts`'s `searchGoogleBooks()` issues up
 to three query variants in parallel (`Promise.allSettled`) — an
 `intitle:"exact phrase"` query when the input has multiple words, an
 `intitle:` query per significant (non-stop-word, 3+ char) term, and the
-raw query as typed — and merges/dedupes the results by external id. This
+raw query as typed — and merges/dedupes the results by volume id. This
 improves recall (a query that's too specific for a single `intitle:`
 phrase match can still hit via the per-term variant) at the cost of
 issuing more requests per search than before; see the Google Books quota
-note in `decisions/ADR-003-google-books-behind-provider-interface.md`'s
-consequences and `working/open-questions.md`.
+note in `working/open-questions.md`. The remote query is separately
+debounced (`REMOTE_SEARCH_DEBOUNCE_MS = 400` in `useBookSearch.ts`,
+via a small `useDebouncedValue` hook) and cancellable (an `AbortSignal`
+from TanStack Query is threaded through `fetchWithRetry`), while the
+local Postgres query fires on every keystroke unthrottled — only the
+remote side needed debouncing since it's the one with real request cost
+and latency. `mergeResults`' sort also gives any result with a cover
+image a hard priority over one without, ahead of the relevance score
+comparison — not just the small `coverBoost` addend described below.
 
 Cover images (added 2026-08-09,
-`googleBooksProvider.ts`'s `enhanceCoverUrl`): Google Books' raw
+`googleBooksApi.ts`'s `enhanceGoogleBooksCoverUrl`): Google Books' raw
 `thumbnail` link is a small (~128px) image with a decorative page-curl
 overlay, then gets stretched to fill much larger grid cells — that
-upscaling is what read as blurry cover art. `enhanceCoverUrl` forces
-`https:`, sets `zoom=2` (roughly doubles resolution), and strips the
-`edge` param (removes the curl decoration) on every cover URL before it
-reaches the UI. Cover `<img>` elements across `BookCoverCard.tsx`,
-`BookShelfCover.tsx`, `SimilarBooks.tsx`, and `BookDetail.tsx` also got
-`loading="lazy"`/`decoding="async"`, so a grid of 20+ covers doesn't all
-decode on the main thread at once (was contributing to choppy scroll).
+upscaling is what read as blurry cover art. `enhanceGoogleBooksCoverUrl`
+forces `https:` and, **only when the original URL already has Google's
+own `edge=curl` marker**, sets `zoom=2` (roughly doubles resolution) and
+strips the `edge` param (removes the curl decoration). That condition
+was added 2026-08-18 (PR #14) after verifying empirically that a volume
+*without* `edge=curl` in its original URL (observed for older/
+library-catalog-only volumes with no real front-cover scan) returns a
+different, degenerate asset at `zoom=2` — e.g. a ~300×48px spine-label
+crop instead of a larger cover — which then stretches into a giant
+blurry text fragment in the grid; those volumes are now left untouched
+at their original zoom instead. Cover `<img>` elements across
+`BookCoverCard.tsx`, `BookShelfCover.tsx`, `SimilarBooks.tsx`, and
+`BookDetail.tsx` also got `loading="lazy"`/`decoding="async"`, so a grid
+of 20+ covers doesn't all decode on the main thread at once (was
+contributing to choppy scroll).
+
+### Cover-image runtime fallback
+
+**A second, independently-built mechanism addresses an overlapping
+version of the same problem.** PR #13 (`better_covers`, merged
+2026-08-17 — before the `edge=curl` fix above existed) added
+`hooks/useCoverImageSrc.ts` + `lib/googleBooksCoverUrl.ts
+::getCoverImageFallbackUrl`: on `<img onLoad>`, if the loaded image's
+`naturalHeight/naturalWidth` ratio is under `MIN_COVER_ASPECT_RATIO`
+(1.4 — real covers run ~1.5–1.7), it retries the same cover at `zoom=1`
+once, then falls back to a text placeholder if that also fails
+(`onError` separately covers an actual HTTP failure).
+
+**This fallback is opt-in via `{ validateAspectRatio: true }` and is
+only passed by `BookDetail.tsx`.** `BookCoverCard.tsx`,
+`BookShelfCover.tsx`, and `SimilarBooks.tsx` all call
+`useCoverImageSrc(coverImageUrl)` without that option (verified by
+reading each call site), so `handleLoad` is never wired to their `<img>`
+elements — the single book-detail page is protected by both mechanisms,
+but the search grid, similar-books row, and any list using
+`BookCoverCard` only get the `edge=curl`-based prevention above, not
+this runtime fallback. The two mechanisms were never reconciled into one
+approach — see `working/open-questions.md`.
 
 ## Avatar upload
 

@@ -1,10 +1,11 @@
-import { googleBooksProvider } from "./googleBooksProvider";
-import type { BookMetadataProvider } from "./types";
-
-export const bookMetadataProvider: BookMetadataProvider = googleBooksProvider;
+export {
+  searchGoogleBooks,
+  getGoogleBookById,
+  enhanceGoogleBooksCoverUrl,
+} from "./googleBooksApi";
 
 export type {
-  BookSearchResult,
-  BookDetail,
-  BookMetadataProvider,
-} from "./types";
+  GoogleBooksVolume,
+  GoogleBooksVolumeInfo,
+  GoogleBooksIndustryIdentifier,
+} from "./googleBooksApi";

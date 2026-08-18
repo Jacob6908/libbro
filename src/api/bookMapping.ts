@@ -1,4 +1,7 @@
-import type { BookDetail } from "../services/metadata/types";
+import type {
+  GoogleBooksIndustryIdentifier,
+  GoogleBooksVolume,
+} from "../services/metadata/googleBooksApi";
 import type { BookInsert } from "../types/database.types";
 import { matchGenreSlugWithFallback } from "../lib/genreMapping";
 import { resolveGenreIdForCategory } from "../services/supabase/genres";
@@ -26,25 +29,35 @@ function stripHtml(html: string | null | undefined): string | null {
   return text || null;
 }
 
-export function mapBookDetailToRow(detail: BookDetail): BookInsert {
+function extractIsbn(
+  identifiers: GoogleBooksIndustryIdentifier[] | undefined,
+  type: "ISBN_13" | "ISBN_10"
+): string | null {
+  return identifiers?.find((id) => id.type === type)?.identifier ?? null;
+}
+
+export function mapGoogleBooksVolumeToRow(
+  volume: GoogleBooksVolume
+): BookInsert {
+  const info = volume.volumeInfo;
   return {
     provider: "google_books",
-    external_id: detail.externalId,
-    title: detail.title,
-    subtitle: detail.subtitle ?? null,
-    authors: detail.authors,
-    description: stripHtml(detail.description),
-    isbn_13: detail.isbn13 ?? null,
-    isbn_10: detail.isbn10 ?? null,
-    page_count: detail.pageCount ?? null,
-    published_date: detail.publishedDate ?? null,
-    published_year: parsePublishedYear(detail.publishedDate),
-    publisher: detail.publisher ?? null,
-    language: detail.language ?? null,
-    cover_image_url: detail.coverImageUrl ?? null,
-    average_rating: detail.averageRating ?? null,
-    ratings_count: detail.ratingsCount ?? null,
-    raw_categories: detail.categories,
+    external_id: volume.id,
+    title: info.title,
+    subtitle: info.subtitle ?? null,
+    authors: info.authors ?? [],
+    description: stripHtml(info.description),
+    isbn_13: extractIsbn(info.industryIdentifiers, "ISBN_13"),
+    isbn_10: extractIsbn(info.industryIdentifiers, "ISBN_10"),
+    page_count: info.pageCount ?? null,
+    published_date: info.publishedDate ?? null,
+    published_year: parsePublishedYear(info.publishedDate),
+    publisher: info.publisher ?? null,
+    language: info.language ?? null,
+    cover_image_url: info.imageLinks?.thumbnail ?? null,
+    average_rating: info.averageRating ?? null,
+    ratings_count: info.ratingsCount ?? null,
+    raw_categories: info.categories ?? [],
   };
 }
 

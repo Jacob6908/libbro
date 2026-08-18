@@ -1,8 +1,9 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { bookMetadataProvider } from "../services/metadata";
+import { searchGoogleBooks } from "../services/metadata/googleBooksApi";
 import { searchLocalBooks } from "../services/supabase/books";
 import type { Book } from "../types/database.types";
-import type { BookSearchResult } from "../services/metadata/types";
+import type { GoogleBooksVolume } from "../services/metadata/googleBooksApi";
 
 export interface MergedSearchResult {
   key: string;
@@ -29,6 +30,22 @@ const STOP_WORDS = new Set([
   "the",
   "to",
 ]);
+
+const REMOTE_SEARCH_DEBOUNCE_MS = 400;
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedValue(value);
+    }, delayMs);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [value, delayMs]);
+
+  return debouncedValue;
+}
 
 /**
  * Scores how well a title matches a search query, so results can be
@@ -128,7 +145,7 @@ function escapeRegExp(value: string): string {
 
 function mergeResults(
   localBooks: Book[],
-  remoteResults: BookSearchResult[],
+  remoteVolumes: GoogleBooksVolume[],
   query: string
 ): MergedSearchResult[] {
   const localByExternalId = new Map(
@@ -145,15 +162,16 @@ function mergeResults(
     localBook: book,
   }));
 
-  for (const remote of remoteResults) {
-    if (localByExternalId.has(remote.externalId)) continue;
+  for (const volume of remoteVolumes) {
+    if (localByExternalId.has(volume.id)) continue;
+    const info = volume.volumeInfo;
     merged.push({
-      key: remote.externalId,
-      externalId: remote.externalId,
-      title: remote.title,
-      subtitle: remote.subtitle,
-      authors: remote.authors,
-      coverImageUrl: remote.coverImageUrl,
+      key: volume.id,
+      externalId: volume.id,
+      title: info.title,
+      subtitle: info.subtitle ?? null,
+      authors: info.authors ?? [],
+      coverImageUrl: info.imageLinks?.thumbnail ?? null,
       localBook: null,
     });
   }
@@ -165,6 +183,10 @@ function mergeResults(
       score: scoreSearchResult(result, query),
     }))
     .sort((a, b) => {
+      const aHasCover = Boolean(a.result.coverImageUrl);
+      const bHasCover = Boolean(b.result.coverImageUrl);
+
+      if (aHasCover !== bHasCover) return bHasCover ? 1 : -1;
       if (b.score !== a.score) return b.score - a.score;
       return a.index - b.index;
     })
@@ -173,30 +195,38 @@ function mergeResults(
 
 export function useBookSearch(query: string) {
   const trimmed = query.trim();
-  const enabled = trimmed.length >= 2;
+  const localEnabled = trimmed.length >= 2;
+  const debouncedRemoteQuery = useDebouncedValue(
+    trimmed,
+    REMOTE_SEARCH_DEBOUNCE_MS
+  );
+  const remoteEnabled = debouncedRemoteQuery.length >= 2;
 
   const localQuery = useQuery({
     queryKey: ["books", "local-search", trimmed],
     queryFn: () => searchLocalBooks(trimmed),
-    enabled,
+    enabled: localEnabled,
   });
 
   const remoteQuery = useQuery({
-    queryKey: ["books", "remote-search", trimmed],
-    queryFn: () => bookMetadataProvider.search(trimmed),
-    enabled,
+    queryKey: ["books", "remote-search", debouncedRemoteQuery],
+    queryFn: ({ signal }) =>
+      searchGoogleBooks(debouncedRemoteQuery, { signal }),
+    enabled: remoteEnabled,
     staleTime: 5 * 60 * 1000,
   });
 
-  const results = mergeResults(
-    localQuery.data ?? [],
-    remoteQuery.data ?? [],
-    trimmed
-  );
+  const remoteResults =
+    debouncedRemoteQuery === trimmed ? (remoteQuery.data ?? []) : [];
+
+  const results = mergeResults(localQuery.data ?? [], remoteResults, trimmed);
 
   return {
     results,
-    isLoading: localQuery.isLoading || remoteQuery.isLoading,
+    isLoading:
+      localQuery.isLoading ||
+      remoteQuery.isLoading ||
+      (localEnabled && debouncedRemoteQuery !== trimmed),
     error: localQuery.error ?? remoteQuery.error,
   };
 }

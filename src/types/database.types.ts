@@ -1,11 +1,15 @@
 export type ReadingStatus =
   "want_to_read" | "reading" | "completed" | "dropped" | "on_hold";
 
+export type BackgroundTheme =
+  "warm-paper" | "reading-room" | "night-shelf" | "sun-faded" | "ink-slate";
+
 export interface Profile {
   id: string;
   username: string;
   avatar_url: string | null;
   bio: string | null;
+  background_theme: BackgroundTheme;
   created_at: string;
   updated_at: string;
 }

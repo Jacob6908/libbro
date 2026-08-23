@@ -3,7 +3,14 @@ import type { ChangeEvent } from "react";
 import { useProfile } from "../hooks/useProfile";
 import AvatarImage from "./AvatarImage";
 import AvatarCropModal from "./AvatarCropModal";
-import type { Profile as ProfileRow } from "../types/database.types";
+import {
+  BACKGROUND_THEMES,
+  DEFAULT_BACKGROUND_THEME,
+} from "../lib/backgroundThemes";
+import type {
+  BackgroundTheme,
+  Profile as ProfileRow,
+} from "../types/database.types";
 import type { ProfilePatch } from "../services/supabase/profiles";
 
 const ACCEPTED_AVATAR_TYPES = [
@@ -168,6 +175,9 @@ function ProfileForm({
 }) {
   const [username, setUsername] = useState(profile?.username ?? "");
   const [bio, setBio] = useState(profile?.bio ?? "");
+  const [backgroundTheme, setBackgroundTheme] = useState<BackgroundTheme>(
+    profile?.background_theme ?? DEFAULT_BACKGROUND_THEME
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -191,6 +201,34 @@ function ProfileForm({
         />
       </label>
 
+      <div className="flex flex-col gap-1.5 text-sm">
+        <span>Background theme</span>
+        <div className="grid grid-cols-5 gap-2">
+          {BACKGROUND_THEMES.map((theme) => (
+            <button
+              key={theme.key}
+              type="button"
+              title={theme.name}
+              onClick={() => setBackgroundTheme(theme.key)}
+              className={`flex h-11 flex-col items-center justify-center rounded-lg border-2 ${
+                backgroundTheme === theme.key
+                  ? "border-primary"
+                  : "border-transparent"
+              }`}
+              style={{ background: theme.page }}
+            >
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ background: theme.primary }}
+              />
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-gray-500">
+          {BACKGROUND_THEMES.find((t) => t.key === backgroundTheme)?.name}
+        </span>
+      </div>
+
       {error instanceof Error && (
         <p className="text-sm text-red-600">{error.message}</p>
       )}
@@ -202,6 +240,7 @@ function ProfileForm({
           onSave({
             username: username.trim(),
             bio: bio.trim() || null,
+            background_theme: backgroundTheme,
           })
         }
         className="w-fit rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"

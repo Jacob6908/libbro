@@ -80,6 +80,33 @@
   transform: translateY(-3px);
 }
 
+/* "browse" variant (search page): resting tilt, ledge hidden until hover,
+   spring-eased lift per ADR-010 instead of the default's flat translateY. */
+.shelf-card--browse .shelf-card-cover {
+  transform: rotate(var(--tilt, 0deg));
+  transition:
+    transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.32s ease;
+}
+.shelf-card-btn:hover .shelf-card--browse .shelf-card-cover {
+  transform: rotate(var(--tilt, 0deg)) translateY(-8px);
+}
+.shelf-card--browse .shelf-card-cover::after {
+  opacity: 0;
+  transform: scaleX(0.9);
+  transition:
+    opacity 0.25s ease,
+    transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.shelf-card-btn:hover .shelf-card--browse .shelf-card-cover::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+.shelf-card-btn:hover .shelf-card--browse .shelf-card-image,
+.shelf-card-btn:hover .shelf-card--browse .shelf-card-placeholder {
+  box-shadow: 0 22px 30px -16px rgba(20, 15, 5, 0.55);
+}
+
 .shelf-card-image,
 .shelf-card-placeholder {
   display: block;

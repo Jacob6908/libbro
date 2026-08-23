@@ -1,0 +1,63 @@
+/* Scoped theme override: only `--color-page`/`--color-ink`/`--color-primary`
+   change per theme, and only within this subtree — NavBar and every other
+   page keep the app's default tokens from src/index.css. Shelf spine colors
+   and genre chip colors are unaffected (lib/genreColors.ts is a separate,
+   fixed palette by design). */
+.profile-theme {
+  background: var(--color-page);
+  color: var(--color-ink);
+  transition: background 0.35s ease, color 0.35s ease;
+  border-radius: 12px;
+}
+
+.profile-theme[data-theme="reading-room"] {
+  --color-page: #eef0e3;
+  --color-ink: #232f1f;
+  --color-primary: #5c7a4f;
+}
+.profile-theme[data-theme="night-shelf"] {
+  --color-page: #1c1a16;
+  --color-ink: #ece6d8;
+  --color-primary: #d8a15c;
+}
+.profile-theme[data-theme="sun-faded"] {
+  --color-page: #f3e6cf;
+  --color-ink: #4a3826;
+  --color-primary: #b5652f;
+}
+.profile-theme[data-theme="ink-slate"] {
+  --color-page: #e6e9ee;
+  --color-ink: #23272e;
+  --color-primary: #3a5975;
+}
+
+/* Text that used a fixed Tailwind gray (not the --color-ink token) needs to
+   ride the theme instead, or it goes unreadable on Night Shelf's dark page. */
+.profile-subtext {
+  color: color-mix(in srgb, var(--color-ink) 58%, transparent);
+}
+
+/* Edit mode, "bold": a real theme shift, not just the existing crud/add-slot
+   silhouettes fading in — a stronger accent-tinted background plus a banner,
+   so being in edit mode is unmistakable at a glance. */
+.profile-theme[data-edit-mode="true"] {
+  background: color-mix(in srgb, var(--color-page) 78%, var(--color-primary) 22%);
+}
+
+.profile-edit-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-theme {
+    transition: none;
+  }
+}

@@ -1,0 +1,140 @@
+.search-hero {
+  padding: 1rem 0 2rem;
+  text-align: center;
+}
+
+.search-hero h1 {
+  margin: 0 0 1.1rem;
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-size: 1.9rem;
+  letter-spacing: -0.01em;
+}
+
+.search-shell {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.search-input {
+  width: 100%;
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-size: 1.05rem;
+  padding: 0.85rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
+  background: color-mix(in srgb, var(--color-page) 30%, #fff 70%);
+  color: var(--color-ink);
+  box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.3);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.search-status {
+  max-width: 480px;
+  margin: 0.8rem auto 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+}
+
+/* ---- click-to-open spread ---- */
+
+.book-scrim {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-ink) 45%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+  z-index: 40;
+}
+.book-scrim.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.book-spread {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 100%);
+  width: min(760px, 92vw);
+  max-height: 82vh;
+  overflow: auto;
+  background: color-mix(in srgb, var(--color-page) 15%, #fffdf8 85%);
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 -20px 60px -20px rgba(0, 0, 0, 0.45);
+  z-index: 50;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 2.2rem 2.4rem;
+  display: flex;
+  gap: 2rem;
+}
+.book-spread.show {
+  transform: translate(-50%, 0);
+}
+.book-spread-cover {
+  position: relative;
+  width: 140px;
+  flex: none;
+  aspect-ratio: 2 / 3;
+  border-radius: 3px;
+  box-shadow: 0 14px 24px -14px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.book-spread-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.book-spread-body {
+  min-width: 0;
+}
+.book-spread-body h2 {
+  margin: 0 0 0.2rem;
+  font-size: 1.35rem;
+}
+.book-spread-author {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+}
+.book-spread-blurb {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin-top: 1rem;
+  color: color-mix(in srgb, var(--color-ink) 85%, transparent);
+}
+.book-spread-close {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: none;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 3px;
+  padding: 0.45rem 0.85rem;
+  margin-top: 1.2rem;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .book-spread {
+    width: 92vw;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-spread,
+  .book-scrim {
+    transition: none;
+  }
+}

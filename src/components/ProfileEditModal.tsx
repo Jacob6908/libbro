@@ -3,7 +3,19 @@ import type { ChangeEvent } from "react";
 import { useProfile } from "../hooks/useProfile";
 import AvatarImage from "./AvatarImage";
 import AvatarCropModal from "./AvatarCropModal";
-import type { Profile as ProfileRow } from "../types/database.types";
+import {
+  BACKGROUND_THEMES,
+  DEFAULT_BACKGROUND_THEME,
+} from "../lib/backgroundThemes";
+import {
+  SHELF_TITLE_STYLES,
+  DEFAULT_SHELF_TITLE_STYLE,
+} from "../lib/shelfTitleStyles";
+import type {
+  BackgroundTheme,
+  Profile as ProfileRow,
+  ShelfTitleStyle,
+} from "../types/database.types";
 import type { ProfilePatch } from "../services/supabase/profiles";
 
 const ACCEPTED_AVATAR_TYPES = [
@@ -14,7 +26,16 @@ const ACCEPTED_AVATAR_TYPES = [
 ];
 const MAX_SOURCE_IMAGE_BYTES = 20 * 1024 * 1024;
 
-export default function ProfileEditModal({ onClose }: { onClose: () => void }) {
+export default function ProfileEditModal({
+  onClose,
+  onPreviewBackgroundTheme,
+}: {
+  onClose: () => void;
+  /** Called as the user tries different swatches, so the real page behind
+   * the modal can preview the theme live — nothing is persisted until
+   * "Save profile" is clicked. */
+  onPreviewBackgroundTheme: (theme: BackgroundTheme) => void;
+}) {
   const {
     profile,
     isLoading,
@@ -63,6 +84,7 @@ export default function ProfileEditModal({ onClose }: { onClose: () => void }) {
                 onSave={save}
                 isSaving={isSaving}
                 error={error}
+                onPreviewBackgroundTheme={onPreviewBackgroundTheme}
               />
             </>
           )}
@@ -160,14 +182,22 @@ function ProfileForm({
   onSave,
   isSaving,
   error,
+  onPreviewBackgroundTheme,
 }: {
   profile: ProfileRow | null;
   onSave: (patch: ProfilePatch) => void;
   isSaving: boolean;
   error: unknown;
+  onPreviewBackgroundTheme: (theme: BackgroundTheme) => void;
 }) {
   const [username, setUsername] = useState(profile?.username ?? "");
   const [bio, setBio] = useState(profile?.bio ?? "");
+  const [backgroundTheme, setBackgroundTheme] = useState<BackgroundTheme>(
+    profile?.background_theme ?? DEFAULT_BACKGROUND_THEME
+  );
+  const [shelfTitleStyle, setShelfTitleStyle] = useState<ShelfTitleStyle>(
+    profile?.shelf_title_style ?? DEFAULT_SHELF_TITLE_STYLE
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -191,6 +221,57 @@ function ProfileForm({
         />
       </label>
 
+      <div className="flex flex-col gap-1.5 text-sm">
+        <span>Background theme</span>
+        <div className="grid grid-cols-5 gap-2">
+          {BACKGROUND_THEMES.map((theme) => (
+            <button
+              key={theme.key}
+              type="button"
+              title={theme.name}
+              onClick={() => {
+                setBackgroundTheme(theme.key);
+                onPreviewBackgroundTheme(theme.key);
+              }}
+              className={`flex h-11 flex-col items-center justify-center rounded-lg border-2 ${
+                backgroundTheme === theme.key
+                  ? "border-primary"
+                  : "border-transparent"
+              }`}
+              style={{ background: theme.page }}
+            >
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ background: theme.primary }}
+              />
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-gray-500">
+          {BACKGROUND_THEMES.find((t) => t.key === backgroundTheme)?.name}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-1.5 text-sm">
+        <span>Shelf title style</span>
+        <div className="grid grid-cols-2 gap-2">
+          {SHELF_TITLE_STYLES.map((style) => (
+            <button
+              key={style.key}
+              type="button"
+              onClick={() => setShelfTitleStyle(style.key)}
+              className={`rounded-lg border-2 px-3 py-1.5 text-left text-sm font-semibold ${
+                shelfTitleStyle === style.key
+                  ? "border-primary text-primary"
+                  : "border-transparent bg-gray-50 text-gray-700"
+              }`}
+            >
+              {style.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {error instanceof Error && (
         <p className="text-sm text-red-600">{error.message}</p>
       )}
@@ -202,6 +283,8 @@ function ProfileForm({
           onSave({
             username: username.trim(),
             bio: bio.trim() || null,
+            background_theme: backgroundTheme,
+            shelf_title_style: shelfTitleStyle,
           })
         }
         className="w-fit rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"

@@ -38,7 +38,7 @@
   height: 26px;
   border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--color-ink) 15%, transparent);
-  background: white;
+  background: var(--color-surface);
   color: color-mix(in srgb, var(--color-ink) 60%, transparent);
   font-size: 0.78rem;
   display: inline-flex;
@@ -67,7 +67,7 @@
   border: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
   border-radius: 6px;
   padding: 0.15rem 0.5rem;
-  background: white;
+  background: var(--color-surface);
   color: var(--color-ink);
 }
 
@@ -99,11 +99,20 @@
   pointer-events: auto;
 }
 
+.library-shelf-row-item {
+  flex: 0 0 188px;
+}
+
+.library-shelf-row-scroll {
+  gap: 2.4rem;
+  padding-right: 1rem;
+}
+
 /* the book-silhouette "add to this shelf" slot at the end of a row —
    visually present but intentionally inert until the add-book flow is
    built; see the comment above its button in ShelfRow.tsx. */
 .add-slot {
-  flex: 0 0 132px;
+  flex: 0 0 188px;
   /* Same fix as .shelf-card-btn in BookShelfCover.css: a native <button>
      centers its content internally in a way plain `display: block` on
      the child doesn't override, which showed up as the silhouette

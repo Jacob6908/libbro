@@ -7,8 +7,99 @@
 .shelf-row-title {
   font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
   font-weight: 600;
-  font-size: 1.15rem;
+  font-size: 1.45rem;
   margin: 0;
+}
+
+/* ---- shelf title style preference (profiles.shelf_title_style) ----
+   Applied via a `data-shelf-title-style` attribute on an ancestor set
+   from the viewed profile (Profile.tsx) or the signed-in user's own
+   profile (Home/Recommendations). `--tick-color` is set per-title by
+   ShelfRow/RecommendationShelfRow via getTitleSpineColor, so a given
+   shelf's color stays stable across renders regardless of which style
+   is active. */
+
+/* spine tick — quiet colored bar before the title, echoing a book spine. */
+[data-shelf-title-style="spine-tick"] .shelf-row-title {
+  position: relative;
+  padding-left: 0.9rem;
+}
+[data-shelf-title-style="spine-tick"] .shelf-row-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  bottom: 0.1em;
+  width: 5px;
+  border-radius: 3px;
+  background: var(--tick-color);
+  transition: width 0.15s ease;
+}
+[data-shelf-title-style="spine-tick"] .shelf-row-title:hover::before {
+  width: 8px;
+}
+
+/* ledger rule — small-caps catalog register with a rule that draws in
+   under the title on hover only. */
+[data-shelf-title-style="ledger-rule"] .shelf-row-title {
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  font-size: 1.3rem;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.3rem;
+}
+[data-shelf-title-style="ledger-rule"] .shelf-row-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1.5px;
+  width: 2rem;
+  background: var(--color-primary);
+  transition: width 0.22s ease;
+}
+[data-shelf-title-style="ledger-rule"] .shelf-row-title:hover::after {
+  width: 100%;
+}
+
+/* genre chip word-mark — title sits inside a pastel pill in the
+   shelf's spine color, reusing the pill shape already used by
+   .auto-tag / genre chips. */
+[data-shelf-title-style="chip-wordmark"] .shelf-row-title {
+  display: inline-flex;
+  align-items: center;
+  background: color-mix(in srgb, var(--tick-color) 60%, transparent);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 1.25rem;
+}
+
+/* floating lift — literal ADR-010 extension: flat at rest, lifts with
+   a soft ink-tinted shadow on hover, same easing as .nav-link. */
+[data-shelf-title-style="floating-lift"] .shelf-row-title {
+  display: inline-block;
+  padding: 0.15rem 0.1rem;
+  border-radius: 6px;
+  transform: translateY(0);
+  box-shadow: 0 0 0 0 transparent;
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+[data-shelf-title-style="floating-lift"] .shelf-row-title:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 14px -8px
+    color-mix(in srgb, var(--color-ink) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-shelf-title-style="spine-tick"] .shelf-row-title::before,
+  [data-shelf-title-style="ledger-rule"] .shelf-row-title::after,
+  [data-shelf-title-style="floating-lift"] .shelf-row-title {
+    transition: none;
+  }
 }
 
 .shelf-row-scroll {
@@ -28,5 +119,5 @@
 }
 
 .shelf-row-item {
-  flex: 0 0 132px;
+  flex: 0 0 156px;
 }

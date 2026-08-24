@@ -10,10 +10,17 @@ import {
 /** Every explicit selection writes this weight; recommendations scoring still multiplies it by 2. */
 const EXPLICIT_WEIGHT = 2;
 
-export function useGenrePreferences() {
+/** Genre preferences for a given profile — defaults to the signed-in
+ * user's own. `profile_genre_preferences` has an open SELECT policy (any
+ * signed-in user can read any profile's preferences), so this also
+ * powers the read-only display on another user's profile; `isOwnProfile`
+ * tells the caller whether editing is allowed. */
+export function useGenrePreferences(profileId?: string) {
   const { user } = useAuth();
+  const targetId = profileId ?? user?.id;
+  const isOwnProfile = !!user && targetId === user.id;
   const queryClient = useQueryClient();
-  const preferencesKey = ["genre_preferences", user?.id];
+  const preferencesKey = ["genre_preferences", targetId];
 
   const genresQuery = useQuery({
     queryKey: ["genres"],
@@ -23,8 +30,8 @@ export function useGenrePreferences() {
 
   const preferencesQuery = useQuery({
     queryKey: preferencesKey,
-    queryFn: () => getGenrePreferences(user!.id),
-    enabled: !!user,
+    queryFn: () => getGenrePreferences(targetId!),
+    enabled: !!targetId,
   });
 
   const selectedGenreIds = new Set(
@@ -58,5 +65,6 @@ export function useGenrePreferences() {
     isLoading: genresQuery.isLoading || preferencesQuery.isLoading,
     saveSelection: saveSelectionMutation.mutateAsync,
     isSaving: saveSelectionMutation.isPending,
+    isOwnProfile,
   };
 }

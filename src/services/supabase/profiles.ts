@@ -1,5 +1,9 @@
 import supabase from "../../supabase-client";
-import type { Profile } from "../../types/database.types";
+import type {
+  BackgroundTheme,
+  Profile,
+  ShelfTitleStyle,
+} from "../../types/database.types";
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
@@ -26,8 +30,10 @@ export async function getProfileByUsername(
 }
 
 export interface ProfilePatch {
-  username: string;
-  bio: string | null;
+  username?: string;
+  bio?: string | null;
+  background_theme?: BackgroundTheme;
+  shelf_title_style?: ShelfTitleStyle;
 }
 
 export async function updateProfile(

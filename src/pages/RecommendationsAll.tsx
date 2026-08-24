@@ -1,10 +1,13 @@
 import { Link } from "react-router";
 import { useRecommendationCategories } from "../hooks/useRecommendations";
+import { useProfile } from "../hooks/useProfile";
 import RecommendationShelfRow from "../components/RecommendationShelfRow";
+import { DEFAULT_SHELF_TITLE_STYLE } from "../lib/shelfTitleStyles";
 
 const BOOKS_PER_ROW = 24;
 
 export default function RecommendationsAll() {
+  const { profile } = useProfile();
   const {
     data: categories,
     isLoading,
@@ -12,7 +15,12 @@ export default function RecommendationsAll() {
   } = useRecommendationCategories(BOOKS_PER_ROW);
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
+    <main
+      className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8"
+      data-shelf-title-style={
+        profile?.shelf_title_style ?? DEFAULT_SHELF_TITLE_STYLE
+      }
+    >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">All recommendations</h1>
         <Link to="/recommendations" className="text-sm text-primary underline">

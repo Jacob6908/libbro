@@ -14,6 +14,7 @@ import RecommendationShelfRow from "../components/RecommendationShelfRow";
 import BookShelfCover from "../components/BookShelfCover";
 import "../components/BookShelfCover.css";
 import "../components/RecommendationShelfRow.css";
+import { DEFAULT_SHELF_TITLE_STYLE } from "../lib/shelfTitleStyles";
 
 const UP_NEXT_COUNT = 6;
 
@@ -43,7 +44,12 @@ export default function Home() {
   } = useListEntry(spotlight?.book_id ?? "");
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
+    <main
+      className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8"
+      data-shelf-title-style={
+        profile?.shelf_title_style ?? DEFAULT_SHELF_TITLE_STYLE
+      }
+    >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <AvatarImage url={profile?.avatar_url ?? null} size={44} />
@@ -65,14 +71,17 @@ export default function Home() {
 
       {spotlight && (
         <section className="flex flex-col gap-4">
-          <h2 className="font-serif text-lg font-semibold">Continue reading</h2>
-          <div className="grid grid-cols-[140px_1fr] gap-6 rounded-2xl bg-white p-6 shadow-sm">
+          <h2 className="font-serif text-2xl font-semibold">
+            Continue reading
+          </h2>
+          <div className="grid grid-cols-[176px_1fr] items-center gap-6 rounded-2xl bg-white p-6 shadow-sm">
             <BookShelfCover
               title={spotlight.book.title}
               authors={[]}
               coverImageUrl={spotlight.book.cover_image_url}
+              showCaption={false}
             />
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col justify-center gap-2">
               <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
                 Reading
               </p>
@@ -125,7 +134,7 @@ export default function Home() {
       {upNext.length > 0 && (
         <section className="flex flex-col gap-3">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-serif text-lg font-semibold">Up next</h2>
+            <h2 className="font-serif text-2xl font-semibold">Up next</h2>
             <Link to="/profile" className="text-sm font-semibold text-primary">
               See your full list →
             </Link>
@@ -136,7 +145,7 @@ export default function Home() {
                 key={entry.id}
                 to={`/books/${entry.book.id}`}
                 className="shelf-card-btn"
-                style={{ width: 132, flex: "0 0 132px" }}
+                style={{ width: 156, flex: "0 0 156px" }}
               >
                 <BookShelfCover
                   title={entry.book.title}

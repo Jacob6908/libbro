@@ -13,7 +13,8 @@ import ProfileEditModal from "../components/ProfileEditModal";
 import GenrePreferencePicker from "../components/GenrePreferencePicker";
 import { STATUS_COLORS, STATUS_LABELS } from "../lib/statusColors";
 import { DEFAULT_BACKGROUND_THEME } from "../lib/backgroundThemes";
-import type { Book, Shelf } from "../types/database.types";
+import { DEFAULT_SHELF_TITLE_STYLE } from "../lib/shelfTitleStyles";
+import type { BackgroundTheme, Book, Shelf } from "../types/database.types";
 import type { ListEntryWithBook } from "../services/supabase/listEntries";
 import "./Profile.css";
 
@@ -98,6 +99,12 @@ export default function Profile() {
     profile?.id
   );
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  // Set while ProfileEditModal is open and the owner is trying out a
+  // different background theme, so the real page previews it live —
+  // cleared (falling back to the saved `profile.background_theme`)
+  // whenever the modal closes, saved or not.
+  const [previewBackgroundTheme, setPreviewBackgroundTheme] =
+    useState<BackgroundTheme | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isAddingShelf, setIsAddingShelf] = useState(false);
   const [newShelfTitle, setNewShelfTitle] = useState("");
@@ -150,134 +157,149 @@ export default function Profile() {
 
   return (
     <main
-      className="profile-theme mx-auto flex max-w-6xl flex-col gap-10 px-4 py-8"
-      data-theme={profile?.background_theme ?? DEFAULT_BACKGROUND_THEME}
+      className="profile-theme"
+      data-theme={
+        previewBackgroundTheme ??
+        profile?.background_theme ??
+        DEFAULT_BACKGROUND_THEME
+      }
+      data-shelf-title-style={
+        profile?.shelf_title_style ?? DEFAULT_SHELF_TITLE_STYLE
+      }
       data-edit-mode={isOwner && isEditMode}
     >
-      {isOwner && isEditMode && (
-        <div className="profile-edit-banner">
-          ✎ Editing your library — changes save as you go
-        </div>
-      )}
-
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <AvatarImage url={profile?.avatar_url ?? null} size={56} />
-          <div>
-            <h1 className="text-2xl font-semibold">
-              {isProfileLoading
-                ? "Library"
-                : `${profile?.username ?? "Your"}'s Library`}
-            </h1>
-            <p className="profile-subtext text-sm">
-              {isOwner
-                ? `${entries.length} tracked · ${completedThisYear} finished this year`
-                : `${allBooks.length} book${
-                    allBooks.length === 1 ? "" : "s"
-                  } · ${shelves.length} ${
-                    shelves.length === 1 ? "shelf" : "shelves"
-                  }`}
-            </p>
-            {profile && (
-              <div className="mt-2">
-                <GenrePreferencePicker profileId={profile.id} compact />
-              </div>
-            )}
-          </div>
-        </div>
-        {isOwner && (
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setIsEditingProfile(true)}
-              className="rounded-full border bg-white px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
-            >
-              ✎ Edit profile
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsEditMode((v) => !v)}
-              className={`rounded-full px-4 py-2 text-sm font-bold ${
-                isEditMode ? "bg-ink text-page" : "bg-primary text-white"
-              }`}
-            >
-              {isEditMode ? "Done" : "Edit Library"}
-            </button>
+      <div className="mx-auto flex max-w-[88rem] flex-col gap-10 px-6 py-8">
+        {isOwner && isEditMode && (
+          <div className="profile-edit-banner">
+            ✎ Editing your library — changes save as you go
           </div>
         )}
-      </div>
 
-      <div className="flex flex-col gap-10">
-        <ShelfRow
-          title="All Books"
-          isAuto
-          isEditMode={isOwner && isEditMode}
-          books={allBooks}
-          badgeFor={(bookId) =>
-            isOwner ? renderStatusBadge(entryByBookId.get(bookId)) : null
-          }
-          emptyMessage="Nothing here yet - search for a book to get started."
-        />
-
-        {shelves.map((shelf) => (
-          <ShelfSection
-            key={shelf.id}
-            shelf={shelf}
-            isOwner={isOwner}
-            isEditMode={isOwner && isEditMode}
-            entryByBookId={entryByBookId}
-            onRename={(shelfId, title) => renameShelf({ shelfId, title })}
-            onDelete={(shelfId) => deleteShelf(shelfId)}
-          />
-        ))}
-
-        {isOwner &&
-          isEditMode &&
-          (isAddingShelf ? (
-            <div className="flex items-center gap-2 rounded-lg border border-dashed bg-white p-4">
-              <input
-                autoFocus
-                type="text"
-                value={newShelfTitle}
-                onChange={(e) => setNewShelfTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submitNewShelf()}
-                placeholder="Shelf title"
-                className="flex-1 rounded border bg-white px-3 py-2 text-sm"
-              />
+        <div className="profile-header">
+          <div className="profile-identity">
+            <AvatarImage url={profile?.avatar_url ?? null} size={76} />
+            <div className="profile-identity-body">
+              <h1 className="text-2xl font-semibold">
+                {isProfileLoading
+                  ? "Library"
+                  : `${profile?.username ?? "Your"}'s Library`}
+              </h1>
+              <p className="profile-subtext text-sm">
+                {isOwner
+                  ? `${entries.length} tracked · ${completedThisYear} finished this year`
+                  : `${allBooks.length} book${
+                      allBooks.length === 1 ? "" : "s"
+                    } · ${shelves.length} ${
+                      shelves.length === 1 ? "shelf" : "shelves"
+                    }`}
+              </p>
+              {profile && (
+                <div className="profile-genre-row mt-2">
+                  <GenrePreferencePicker profileId={profile.id} compact />
+                </div>
+              )}
+            </div>
+          </div>
+          {isOwner && (
+            <div className="profile-actions">
               <button
                 type="button"
-                onClick={submitNewShelf}
-                className="text-sm font-semibold text-primary"
+                onClick={() => setIsEditingProfile(true)}
+                className="rounded-full border bg-surface px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
               >
-                Add
+                ✎ Edit profile
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setIsAddingShelf(false);
-                  setNewShelfTitle("");
-                }}
-                className="profile-subtext text-sm"
+                onClick={() => setIsEditMode((v) => !v)}
+                className={`rounded-full px-4 py-2 text-sm font-bold ${
+                  isEditMode ? "bg-ink text-page" : "bg-primary text-white"
+                }`}
               >
-                Cancel
+                {isEditMode ? "Done" : "Edit Library"}
               </button>
             </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setIsAddingShelf(true)}
-              className="profile-subtext flex items-center gap-3 rounded-lg border border-dashed bg-white px-5 py-4 text-left text-sm font-bold hover:border-primary hover:text-primary"
-            >
-              <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full border border-dashed border-current text-base">
-                +
-              </span>
-              Add a new shelf
-            </button>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-10">
+          <ShelfRow
+            title="All Books"
+            isAuto
+            isEditMode={isOwner && isEditMode}
+            books={allBooks}
+            badgeFor={(bookId) =>
+              isOwner ? renderStatusBadge(entryByBookId.get(bookId)) : null
+            }
+            emptyMessage="Nothing here yet - search for a book to get started."
+          />
+
+          {shelves.map((shelf) => (
+            <ShelfSection
+              key={shelf.id}
+              shelf={shelf}
+              isOwner={isOwner}
+              isEditMode={isOwner && isEditMode}
+              entryByBookId={entryByBookId}
+              onRename={(shelfId, title) => renameShelf({ shelfId, title })}
+              onDelete={(shelfId) => deleteShelf(shelfId)}
+            />
           ))}
+
+          {isOwner &&
+            isEditMode &&
+            (isAddingShelf ? (
+              <div className="flex items-center gap-2 rounded-lg border border-dashed bg-surface p-4">
+                <input
+                  autoFocus
+                  type="text"
+                  value={newShelfTitle}
+                  onChange={(e) => setNewShelfTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && submitNewShelf()}
+                  placeholder="Shelf title"
+                  className="flex-1 rounded border bg-surface px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={submitNewShelf}
+                  className="text-sm font-semibold text-primary"
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingShelf(false);
+                    setNewShelfTitle("");
+                  }}
+                  className="profile-subtext text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAddingShelf(true)}
+                className="profile-subtext flex items-center gap-3 rounded-lg border border-dashed bg-surface px-5 py-4 text-left text-sm font-bold hover:border-primary hover:text-primary"
+              >
+                <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full border border-dashed border-current text-base">
+                  +
+                </span>
+                Add a new shelf
+              </button>
+            ))}
+        </div>
       </div>
 
       {isEditingProfile && (
-        <ProfileEditModal onClose={() => setIsEditingProfile(false)} />
+        <ProfileEditModal
+          onClose={() => {
+            setIsEditingProfile(false);
+            setPreviewBackgroundTheme(null);
+          }}
+          onPreviewBackgroundTheme={setPreviewBackgroundTheme}
+        />
       )}
     </main>
   );

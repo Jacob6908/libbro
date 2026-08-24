@@ -38,9 +38,6 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  contain: layout paint style;
-  content-visibility: auto;
-  contain-intrinsic-size: 260px 360px;
 }
 .shelf-card-btn:disabled {
   opacity: 0.5;
@@ -74,6 +71,8 @@
   width: 100%;
   aspect-ratio: 2 / 3;
   transition: transform 0.15s ease;
+  transform-origin: center bottom;
+  will-change: transform;
 }
 
 .shelf-card-btn:hover .shelf-card-cover {
@@ -101,10 +100,6 @@
 .shelf-card-btn:hover .shelf-card--browse .shelf-card-cover::after {
   opacity: 1;
   transform: scaleX(1);
-}
-.shelf-card-btn:hover .shelf-card--browse .shelf-card-image,
-.shelf-card-btn:hover .shelf-card--browse .shelf-card-placeholder {
-  box-shadow: 0 22px 30px -16px rgba(20, 15, 5, 0.55);
 }
 
 .shelf-card-image,

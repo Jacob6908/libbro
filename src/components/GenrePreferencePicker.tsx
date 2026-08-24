@@ -48,11 +48,11 @@ export default function GenrePreferencePicker({
 
     return (
       <>
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="genre-preference-compact flex flex-wrap items-center gap-2">
           {shown.map((genre) => (
             <span
               key={genre.id}
-              className="whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold text-ink"
+              className="genre-preference-chip whitespace-nowrap rounded-full font-bold text-ink"
               style={{ background: colorByGenreId.get(genre.id) }}
             >
               {genre.name}
@@ -62,7 +62,7 @@ export default function GenrePreferencePicker({
             <button
               type="button"
               onClick={() => setIsExpanded(true)}
-              className="profile-subtext text-xs font-bold hover:text-primary"
+              className="genre-preference-text-btn profile-subtext font-bold hover:text-primary"
             >
               +{extra} more
             </button>
@@ -71,7 +71,7 @@ export default function GenrePreferencePicker({
             <button
               type="button"
               onClick={() => setIsExpanded(false)}
-              className="profile-subtext text-xs font-bold hover:text-primary"
+              className="genre-preference-text-btn profile-subtext font-bold hover:text-primary"
             >
               Show less
             </button>
@@ -81,7 +81,7 @@ export default function GenrePreferencePicker({
               type="button"
               onClick={() => setIsEditing(true)}
               title="Edit genre preferences"
-              className="flex h-5 w-5 flex-none items-center justify-center rounded-full border border-dashed border-gray-300 text-xs text-gray-400 hover:border-primary hover:text-primary"
+              className="genre-preference-add flex flex-none items-center justify-center rounded-full border border-dashed border-gray-300 text-gray-400 hover:border-primary hover:text-primary"
             >
               +
             </button>

@@ -27,11 +27,11 @@ export default function NavBar() {
 
   return (
     <header>
-      <div className="nav-inner mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4">
+      <div className="nav-inner mx-auto grid max-w-[88rem] grid-cols-[1fr_auto_1fr] items-center px-6">
         <Link to="/" className="nav-logo">
           li<span className="tilt">b</span>bro
         </Link>
-        <nav className="flex items-center gap-7">
+        <nav className="flex items-center gap-9">
           {LINKS.map((link) => (
             <NavLink
               key={link.to}

@@ -20,6 +20,7 @@ export default function BookShelfCover({
   coverImageUrl,
   badge,
   variant = "default",
+  showCaption = true,
 }: {
   title: string;
   authors: string[];
@@ -29,6 +30,7 @@ export default function BookShelfCover({
   /** "browse" adds a resting tilt and reveals the shelf ledge only on hover,
    * instead of the default's always-visible ledge. Used on the search page. */
   variant?: "default" | "browse";
+  showCaption?: boolean;
 }) {
   const { src, handleError } = useCoverImageSrc(coverImageUrl);
 
@@ -66,13 +68,15 @@ export default function BookShelfCover({
           </div>
         )}
       </div>
-      <div className="shelf-card-caption">
-        <p className="shelf-card-title">{title}</p>
-        {authors.length > 0 && (
-          <p className="shelf-card-author">{authors.join(", ")}</p>
-        )}
-        {badge}
-      </div>
+      {showCaption && (
+        <div className="shelf-card-caption">
+          <p className="shelf-card-title">{title}</p>
+          {authors.length > 0 && (
+            <p className="shelf-card-author">{authors.join(", ")}</p>
+          )}
+          {badge}
+        </div>
+      )}
     </div>
   );
 }

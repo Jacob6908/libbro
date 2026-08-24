@@ -31,7 +31,7 @@ export default function BookDetail() {
   }
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8">
+    <main className="mx-auto flex max-w-[88rem] flex-col gap-4 px-6 py-8">
       <div className="flex gap-4">
         {coverSrc ? (
           <img

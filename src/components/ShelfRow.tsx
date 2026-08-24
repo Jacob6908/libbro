@@ -1,7 +1,8 @@
 import { useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Link } from "react-router";
 import type { Book } from "../types/database.types";
+import { getTitleSpineColor } from "../lib/genreColors";
 import BookShelfCover from "./BookShelfCover";
 import "./BookShelfCover.css";
 import "./RecommendationShelfRow.css";
@@ -82,7 +83,14 @@ export default function ShelfRow({
           </div>
         ) : (
           <>
-            <h2 className="shelf-row-title">{title}</h2>
+            <h2
+              className="shelf-row-title"
+              style={
+                { "--tick-color": getTitleSpineColor(title) } as CSSProperties
+              }
+            >
+              {title}
+            </h2>
             {isAuto ? (
               <span className="auto-tag">Always here</span>
             ) : (
@@ -112,12 +120,12 @@ export default function ShelfRow({
       {showEmptyMessage ? (
         <p className="shelf-row-empty">{emptyMessage}</p>
       ) : (
-        <div className="shelf-row-scroll">
+        <div className="shelf-row-scroll library-shelf-row-scroll">
           {books.map((book) => (
             <Link
               key={book.id}
               to={`/books/${book.id}`}
-              className="shelf-card-btn shelf-row-item"
+              className="shelf-card-btn shelf-row-item library-shelf-row-item"
             >
               <BookShelfCover
                 title={book.title}

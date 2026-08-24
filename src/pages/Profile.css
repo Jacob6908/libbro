@@ -1,13 +1,19 @@
-/* Scoped theme override: only `--color-page`/`--color-ink`/`--color-primary`
-   change per theme, and only within this subtree — NavBar and every other
-   page keep the app's default tokens from src/index.css. Shelf spine colors
-   and genre chip colors are unaffected (lib/genreColors.ts is a separate,
-   fixed palette by design). */
+/* Scoped theme override: only `--color-page`/`--color-ink`/`--color-primary`/
+   `--color-surface` change per theme, and only within this subtree — NavBar
+   and every other page keep the app's default tokens from src/index.css.
+   Shelf spine colors and genre chip colors are unaffected (lib/genreColors.ts
+   is a separate, fixed palette by design).
+
+   Full-bleed, not boxed: this used to be a rounded 12px card of color
+   floating on the plain page, which read as a swatch rather than an actual
+   background. It's now the real backdrop for everything below the nav —
+   full viewport width, and tall enough to reach the bottom of the viewport
+   even when the page's content is short. */
 .profile-theme {
   background: var(--color-page);
   color: var(--color-ink);
+  min-height: calc(100vh - 82px);
   transition: background 0.35s ease, color 0.35s ease;
-  border-radius: 12px;
 }
 
 .profile-theme[data-theme="reading-room"] {
@@ -19,6 +25,9 @@
   --color-page: #1c1a16;
   --color-ink: #ece6d8;
   --color-primary: #d8a15c;
+  /* A pure-white card would blow out against this near-black page — raise
+     the surface off the page instead of jumping straight to white. */
+  --color-surface: color-mix(in srgb, var(--color-page) 85%, white 15%);
 }
 .profile-theme[data-theme="sun-faded"] {
   --color-page: #f3e6cf;
@@ -35,6 +44,50 @@
    ride the theme instead, or it goes unreadable on Night Shelf's dark page. */
 .profile-subtext {
   color: color-mix(in srgb, var(--color-ink) 58%, transparent);
+}
+
+.profile-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+}
+
+.profile-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.profile-identity-body {
+  min-width: 0;
+}
+
+.profile-genre-row {
+  max-width: min(100%, 42rem);
+}
+
+.genre-preference-chip {
+  padding: 0.25rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.genre-preference-text-btn {
+  font-size: 0.85rem;
+}
+
+.genre-preference-add {
+  width: 1.65rem;
+  height: 1.65rem;
+  font-size: 0.9rem;
+}
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
 }
 
 /* Edit mode, "bold": a real theme shift, not just the existing crud/add-slot
@@ -59,5 +112,16 @@
 @media (prefers-reduced-motion: reduce) {
   .profile-theme {
     transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .profile-header {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-actions {
+    flex-wrap: wrap;
+    white-space: normal;
   }
 }

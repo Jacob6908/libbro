@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import { Link } from "react-router";
 import type { Book } from "../types/database.types";
+import { getTitleSpineColor } from "../lib/genreColors";
 import BookShelfCover from "./BookShelfCover";
 import "./BookShelfCover.css";
 import "./RecommendationShelfRow.css";
@@ -13,7 +15,12 @@ export default function RecommendationShelfRow({
 }) {
   return (
     <section className="shelf-row">
-      <h2 className="shelf-row-title">{title}</h2>
+      <h2
+        className="shelf-row-title"
+        style={{ "--tick-color": getTitleSpineColor(title) } as CSSProperties}
+      >
+        {title}
+      </h2>
       <div className="shelf-row-scroll">
         {books.map((book) => (
           <Link

@@ -103,6 +103,20 @@
   flex: 0 0 188px;
 }
 
+/* Plain layout wrapper — unlike `.shelf-card-btn` elsewhere, this is never
+   itself a link/button. Only the cover art (BookShelfCover's `linkTo`) is
+   clickable here, so the caption below it shouldn't show a pointer cursor
+   or otherwise read as interactive. Same flex/alignment fix as
+   `.shelf-card-btn` in BookShelfCover.css: pins each card to the top of its
+   row regardless of a neighbor's taller, wrapped caption. */
+.shelf-card-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+}
+
 .library-shelf-row-scroll {
   gap: 2.4rem;
   padding-right: 1rem;

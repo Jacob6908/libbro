@@ -79,6 +79,20 @@
   transform: translateY(-3px);
 }
 
+/* Cover-only link (BookShelfCover's `linkTo` prop): the cover itself is the
+   `<a>`, not a parent wrapping the whole card, so hover/focus/lift apply
+   directly to it — hovering the caption below (title, author, remove
+   control) has no effect on the cover at all. */
+a.shelf-card-cover:hover {
+  transform: translateY(-3px);
+}
+
+a.shelf-card-cover:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
 /* "browse" variant (search page): resting tilt, ledge hidden until hover,
    spring-eased lift per ADR-010 instead of the default's flat translateY. */
 .shelf-card--browse .shelf-card-cover {

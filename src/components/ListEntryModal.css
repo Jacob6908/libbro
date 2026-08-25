@@ -29,3 +29,92 @@
     width: 150px;
   }
 }
+
+/* Fixed-height stage for the progress/rating area: sized for its tallest
+   combination ("dropped" shows both at once) so switching status chips
+   cross-fades the content inside instead of resizing the modal. */
+.list-entry-modal-stage {
+  min-height: 148px;
+}
+
+.list-entry-modal-stage-content {
+  animation: list-entry-stage-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes list-entry-stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.list-entry-progress-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-primary) 0%,
+    var(--color-primary) var(--pct, 0%),
+    color-mix(in srgb, var(--color-ink) 14%, transparent) var(--pct, 0%)
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+.list-entry-progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 3px solid var(--color-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.list-entry-progress-slider:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+  cursor: grabbing;
+}
+
+.list-entry-progress-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 3px solid var(--color-primary);
+  cursor: grab;
+}
+
+.list-entry-number-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.list-entry-number-input::-webkit-outer-spin-button,
+.list-entry-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.list-entry-remove-btn {
+  color: color-mix(in srgb, var(--color-ink) 45%, transparent);
+}
+
+.list-entry-remove-btn:hover:not(:disabled) {
+  color: #a5473f;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list-entry-modal-stage-content {
+    animation: none;
+  }
+}

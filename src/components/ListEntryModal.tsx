@@ -168,77 +168,104 @@ export default function ListEntryModal({
               </div>
             </div>
 
-            {showProgress ? (
-              <div>
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ink/60">
-                  Progress
-                </p>
-                {pageCount ? (
-                  <div className="flex items-center gap-2 text-sm">
+            <div className="list-entry-modal-stage">
+              <div
+                key={status}
+                className="list-entry-modal-stage-content flex flex-col gap-4"
+              >
+                {showProgress ? (
+                  <div>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ink/60">
+                      Progress
+                    </p>
                     <input
-                      type="number"
+                      type="range"
                       min={0}
-                      max={pageCount}
-                      value={page}
-                      onChange={(event) => handlePageChange(event.target.value)}
-                      className="w-24 rounded border border-ink/20 bg-surface px-2 py-1"
+                      max={pageCount ? pageCount : 100}
+                      value={pageCount ? pageValue : percentValue}
+                      onChange={(event) =>
+                        pageCount
+                          ? handlePageChange(event.target.value)
+                          : handlePercentChange(event.target.value)
+                      }
+                      className="list-entry-progress-slider"
+                      style={
+                        { "--pct": `${progressPercent}%` } as CSSProperties
+                      }
                     />
-                    <span className="text-ink/60">of {pageCount} pages</span>
+                    <div className="mt-2 flex items-center gap-2 text-sm">
+                      {pageCount ? (
+                        <>
+                          <input
+                            type="number"
+                            min={0}
+                            max={pageCount}
+                            value={page}
+                            onChange={(event) =>
+                              handlePageChange(event.target.value)
+                            }
+                            className="list-entry-number-input w-16 rounded border border-ink/20 bg-surface px-2 py-1 text-center"
+                          />
+                          <span className="text-ink/60">
+                            of {pageCount} pages
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={percent}
+                            onChange={(event) =>
+                              handlePercentChange(event.target.value)
+                            }
+                            className="list-entry-number-input w-16 rounded border border-ink/20 bg-surface px-2 py-1 text-center"
+                          />
+                          <span className="text-ink/60">% complete</span>
+                        </>
+                      )}
+                      <span className="ml-auto font-bold text-primary">
+                        {progressPercent}%
+                      </span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-sm">
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={percent}
-                      onChange={(event) =>
-                        handlePercentChange(event.target.value)
-                      }
-                      className="w-24 rounded border border-ink/20 bg-surface px-2 py-1"
-                    />
-                    <span className="text-ink/60">% complete</span>
+                  <p className="text-sm italic text-ink/60">
+                    {status === "want_to_read"
+                      ? 'No progress to track yet — flip to "Reading" once you start.'
+                      : "✓ Finished — page tracking not needed."}
+                  </p>
+                )}
+
+                {showRating && (
+                  <div>
+                    <p className="mb-1 text-xs font-bold uppercase tracking-wide text-ink/60">
+                      Rating
+                    </p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() =>
+                            setRating(rating === star ? null : star)
+                          }
+                          aria-label={`${star} star`}
+                          className={`press-star text-2xl leading-none ${
+                            rating !== null && star <= rating
+                              ? "text-yellow-500"
+                              : "text-ink/25"
+                          }`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/15">
-                  <div
-                    className="h-full rounded-full bg-primary"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
               </div>
-            ) : (
-              <p className="text-sm italic text-ink/60">
-                {status === "want_to_read"
-                  ? 'No progress to track yet — flip to "Reading" once you start.'
-                  : "✓ Finished — page tracking not needed."}
-              </p>
-            )}
-
-            {showRating && (
-              <div>
-                <p className="mb-1 text-xs font-bold uppercase tracking-wide text-ink/60">
-                  Rating
-                </p>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRating(rating === star ? null : star)}
-                      aria-label={`${star} star`}
-                      className={`press-star text-2xl leading-none ${
-                        rating !== null && star <= rating
-                          ? "text-yellow-500"
-                          : "text-ink/25"
-                      }`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            </div>
 
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-xs font-bold uppercase tracking-wide text-ink/60">
@@ -255,7 +282,29 @@ export default function ListEntryModal({
           </div>
         </div>
 
-        <div className="flex gap-2 px-6 pb-6">
+        <div className="flex items-center justify-between gap-3 px-6 pb-6">
+          {entry ? (
+            <button
+              type="button"
+              disabled={isRemoving}
+              onClick={() => onRemove()}
+              className="float-icon list-entry-remove-btn flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold disabled:opacity-50"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                className="h-3.5 w-3.5"
+              >
+                <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+              </svg>
+              {isRemoving ? "Removing..." : "Remove"}
+            </button>
+          ) : (
+            <span />
+          )}
           <button
             type="button"
             disabled={isSaving}
@@ -267,20 +316,21 @@ export default function ListEntryModal({
                 review: review.trim() || null,
               })
             }
-            className="float flex-1 rounded-full bg-primary px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
+            className="float flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
           >
-            {isSaving ? "Saving..." : entry ? "Update" : "Add to list"}
-          </button>
-          {entry && (
-            <button
-              type="button"
-              disabled={isRemoving}
-              onClick={() => onRemove()}
-              className="float rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-3.5 w-3.5"
             >
-              {isRemoving ? "Removing..." : "Remove"}
-            </button>
-          )}
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            {isSaving ? "Saving..." : entry ? "Save changes" : "Add to list"}
+          </button>
         </div>
       </div>
     </div>

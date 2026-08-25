@@ -100,7 +100,7 @@ export default function GenrePreferenceModal({
         </div>
 
         <div className="border-t border-ink/15 px-6 py-4">
-          <div className="mb-3 flex min-h-[30px] gap-2 overflow-x-auto">
+          <div className="mb-3 flex min-h-[30px] flex-wrap gap-2">
             {selectedGenres.length === 0 ? (
               <span className="py-1 text-sm text-ink/60">
                 No genres selected yet
@@ -110,21 +110,16 @@ export default function GenrePreferenceModal({
                 // Fixed dark text, not the themed `text-ink` — this chip's
                 // fill is always a light pastel (SPINE_COLORS) regardless
                 // of theme, so it needs to stay readable against that.
-                <span
+                <button
                   key={genre.id}
-                  className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full py-1 pl-3 pr-1 text-xs font-medium text-[#2b271f]"
+                  type="button"
+                  aria-label={`Remove ${genre.name}`}
+                  onClick={() => toggle(genre.id)}
+                  className="float-icon whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium text-[#2b271f]"
                   style={{ background: colorByGenreId.get(genre.id) }}
                 >
                   {genre.name}
-                  <button
-                    type="button"
-                    aria-label={`Remove ${genre.name}`}
-                    onClick={() => toggle(genre.id)}
-                    className="float-icon flex h-4 w-4 items-center justify-center rounded-full bg-black/10 text-[11px]"
-                  >
-                    ×
-                  </button>
-                </span>
+                </button>
               ))
             )}
           </div>

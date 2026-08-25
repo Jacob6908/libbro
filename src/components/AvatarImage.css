@@ -1,0 +1,34 @@
+/* "Bookplate": a ring in the active genre's --color-primary plus a small
+   ribbon tab peeking from behind the top edge, like an ex-libris plate.
+   Falls back to index.css's global --color-primary/--color-page outside
+   of Profile.tsx's themed wrapper, so it reads consistently everywhere
+   AvatarImage is used (Home, ProfileEditModal, Profile). */
+.avatar-bookplate {
+  position: relative;
+  flex: none;
+}
+
+.avatar-bookplate-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px var(--color-page),
+    0 0 0 3.5px var(--color-primary),
+    1px 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.avatar-bookplate::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 14%;
+  width: 22%;
+  min-width: 9px;
+  height: 34%;
+  background: var(--color-primary);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  transform: rotate(8deg);
+  transform-origin: top center;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.25));
+}

@@ -1,18 +1,28 @@
 /* Scoped theme override: only `--color-page`/`--color-ink`/`--color-primary`/
-   `--color-surface` change per theme, and only within this subtree — NavBar
-   and every other page keep the app's default tokens from src/index.css.
-   Shelf spine colors and genre chip colors are unaffected (lib/genreColors.ts
-   is a separate, fixed palette by design).
-
-   Full-bleed, not boxed: this used to be a rounded 12px card of color
-   floating on the plain page, which read as a swatch rather than an actual
-   background. It's now the real backdrop for everything below the nav —
-   full viewport width, and tall enough to reach the bottom of the viewport
-   even when the page's content is short. */
+   `--color-surface` change per theme. The theme starts behind the transparent
+   nav and fades into the profile page, so changing themes no longer leaves a
+   hard default-color band above the library. */
 .profile-theme {
-  background: var(--color-page);
+  /* The two gradients only tint the top/bottom 8rem; without a solid
+     base layer, anything past that fades to transparent and exposes
+     <body>'s global (light) --color-page underneath instead of this
+     theme's own page color. */
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--color-page) 84%, var(--color-primary) 16%) 0,
+      transparent 8rem
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-page) 86%, var(--color-primary) 14%) 0,
+      transparent 8rem
+    ),
+    var(--color-page);
   color: var(--color-ink);
-  min-height: calc(100vh - 82px);
+  min-height: 100vh;
+  margin-top: -82px;
+  padding-top: 82px;
   transition: background 0.35s ease, color 0.35s ease;
 }
 
@@ -22,12 +32,27 @@
   --color-primary: #5c7a4f;
 }
 .profile-theme[data-theme="night-shelf"] {
-  --color-page: #1c1a16;
-  --color-ink: #ece6d8;
-  --color-primary: #d8a15c;
+  --color-page: #302c25;
+  --color-ink: #efe3cf;
+  --color-primary: #b98956;
   /* A pure-white card would blow out against this near-black page — raise
      the surface off the page instead of jumping straight to white. */
   --color-surface: color-mix(in srgb, var(--color-page) 85%, white 15%);
+}
+
+.profile-theme[data-theme="night-shelf"] {
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--color-page) 82%, var(--color-primary) 18%) 0,
+      transparent 8rem
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-page) 84%, var(--color-primary) 16%) 0,
+      transparent 8rem
+    ),
+    var(--color-page);
 }
 .profile-theme[data-theme="sun-faded"] {
   --color-page: #f3e6cf;
@@ -38,6 +63,44 @@
   --color-page: #e6e9ee;
   --color-ink: #23272e;
   --color-primary: #3a5975;
+}
+
+.min-h-screen:has(.profile-theme[data-theme="reading-room"]) .nav-shell {
+  --color-page: #eef0e3;
+  --color-ink: #232f1f;
+  --color-primary: #5c7a4f;
+}
+
+.min-h-screen:has(.profile-theme[data-theme="night-shelf"]) .nav-shell {
+  --color-page: #302c25;
+  --color-ink: #efe3cf;
+  --color-primary: #b98956;
+}
+
+.min-h-screen:has(.profile-theme[data-theme="sun-faded"]) .nav-shell {
+  --color-page: #f3e6cf;
+  --color-ink: #4a3826;
+  --color-primary: #b5652f;
+}
+
+.min-h-screen:has(.profile-theme[data-theme="ink-slate"]) .nav-shell {
+  --color-page: #e6e9ee;
+  --color-ink: #23272e;
+  --color-primary: #3a5975;
+}
+
+.min-h-screen:has(.profile-theme) .nav-shell::before {
+  background:
+    radial-gradient(
+      ellipse at 8% 45%,
+      color-mix(in srgb, var(--color-page) 72%, var(--color-primary) 28%) 0,
+      transparent 12rem
+    ),
+    radial-gradient(
+      ellipse at 92% 45%,
+      color-mix(in srgb, var(--color-page) 76%, var(--color-primary) 24%) 0,
+      transparent 10rem
+    );
 }
 
 /* Text that used a fixed Tailwind gray (not the --color-ink token) needs to
@@ -83,6 +146,39 @@
   font-size: 0.9rem;
 }
 
+.shelf-title-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.shelf-title-option-preview {
+  width: fit-content;
+  color: var(--color-ink);
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.shelf-title-option-preview--spine-tick {
+  border-left: 5px solid #c4b2c6;
+  padding-left: 0.55rem;
+}
+
+.shelf-title-option-preview--ledger-rule {
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 0.2rem;
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+}
+
+.shelf-title-option-preview--chip-wordmark {
+  border-radius: 999px;
+  background: #e7caa6;
+  padding: 0.25rem 0.8rem;
+}
+
 .profile-actions {
   display: flex;
   align-items: center;
@@ -94,7 +190,18 @@
    silhouettes fading in — a stronger accent-tinted background plus a banner,
    so being in edit mode is unmistakable at a glance. */
 .profile-theme[data-edit-mode="true"] {
-  background: color-mix(in srgb, var(--color-page) 78%, var(--color-primary) 22%);
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--color-page) 66%, var(--color-primary) 34%) 0,
+      transparent 8rem
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-page) 70%, var(--color-primary) 30%) 0,
+      transparent 8rem
+    ),
+    var(--color-page);
 }
 
 .profile-edit-banner {

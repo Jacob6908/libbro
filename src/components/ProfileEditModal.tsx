@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useProfile } from "../hooks/useProfile";
 import AvatarImage from "./AvatarImage";
@@ -39,7 +39,7 @@ export default function ProfileEditModal({
   const {
     profile,
     isLoading,
-    save,
+    saveAsync,
     isSaving,
     error,
     uploadAvatar,
@@ -47,12 +47,28 @@ export default function ProfileEditModal({
     avatarError,
   } = useProfile();
 
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="flex w-full max-w-md flex-col overflow-hidden rounded bg-white shadow-xl">
-        <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/70 p-6">
+      <div
+        className="flex max-h-[min(760px,calc(100vh-3rem))] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profile-edit-title"
+      >
+        <div className="flex flex-none items-start justify-between gap-4 border-b px-7 py-5">
           <div>
-            <h2 className="font-medium">Edit profile</h2>
+            <h2 id="profile-edit-title" className="font-medium">
+              Edit profile
+            </h2>
             <p className="text-sm text-gray-500">
               Username, bio, and photo — separate from your book lists.
             </p>
@@ -67,7 +83,7 @@ export default function ProfileEditModal({
           </button>
         </div>
 
-        <div className="flex flex-col gap-4 px-6 py-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-7 py-5">
           {isLoading ? (
             <p className="text-sm text-gray-500">Loading your profile...</p>
           ) : (
@@ -81,7 +97,10 @@ export default function ProfileEditModal({
               <ProfileForm
                 key={profile?.id ?? "loading"}
                 profile={profile}
-                onSave={save}
+                onSave={async (patch) => {
+                  await saveAsync(patch);
+                  onClose();
+                }}
                 isSaving={isSaving}
                 error={error}
                 onPreviewBackgroundTheme={onPreviewBackgroundTheme}
@@ -185,7 +204,7 @@ function ProfileForm({
   onPreviewBackgroundTheme,
 }: {
   profile: ProfileRow | null;
-  onSave: (patch: ProfilePatch) => void;
+  onSave: (patch: ProfilePatch) => Promise<void>;
   isSaving: boolean;
   error: unknown;
   onPreviewBackgroundTheme: (theme: BackgroundTheme) => void;
@@ -254,19 +273,29 @@ function ProfileForm({
 
       <div className="flex flex-col gap-1.5 text-sm">
         <span>Shelf title style</span>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           {SHELF_TITLE_STYLES.map((style) => (
             <button
               key={style.key}
               type="button"
               onClick={() => setShelfTitleStyle(style.key)}
-              className={`rounded-lg border-2 px-3 py-1.5 text-left text-sm font-semibold ${
+              className={`shelf-title-option rounded-lg border-2 px-3 py-2 text-left ${
                 shelfTitleStyle === style.key
                   ? "border-primary text-primary"
                   : "border-transparent bg-gray-50 text-gray-700"
               }`}
             >
-              {style.name}
+              <span className="text-xs font-bold uppercase tracking-wide">
+                {style.name}
+              </span>
+              <span
+                className={`shelf-title-option-preview shelf-title-option-preview--${style.key}`}
+              >
+                {style.sample}
+              </span>
+              <span className="text-xs font-normal text-gray-500">
+                {style.description}
+              </span>
             </button>
           ))}
         </div>

@@ -26,7 +26,7 @@ export default function NavBar() {
   };
 
   return (
-    <header>
+    <header className="nav-shell">
       <div className="nav-inner mx-auto grid max-w-[88rem] grid-cols-[1fr_auto_1fr] items-center px-6">
         <Link to="/" className="nav-logo">
           li<span className="tilt">b</span>bro

@@ -29,9 +29,9 @@ export const BACKGROUND_THEMES: {
   {
     key: "night-shelf",
     name: "Night Shelf",
-    page: "#302c25",
-    ink: "#efe3cf",
-    primary: "#b98956",
+    page: "#343027",
+    ink: "#d8c9b1",
+    primary: "#a8794d",
   },
   {
     key: "sun-faded",

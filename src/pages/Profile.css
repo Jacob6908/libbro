@@ -1,112 +1,58 @@
-/* Scoped theme override: only `--color-page`/`--color-ink`/`--color-primary`/
-   `--color-surface` change per theme. The theme starts behind the transparent
-   nav and fades into the profile page, so changing themes no longer leaves a
-   hard default-color band above the library. */
-.profile-theme {
-  /* The two gradients only tint the top/bottom 8rem; without a solid
-     base layer, anything past that fades to transparent and exposes
-     <body>'s global (light) --color-page underneath instead of this
-     theme's own page color. */
-  background:
-    linear-gradient(
-      to top,
-      color-mix(in srgb, var(--color-page) 84%, var(--color-primary) 16%) 0,
-      transparent 8rem
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--color-page) 86%, var(--color-primary) 14%) 0,
-      transparent 8rem
-    ),
-    var(--color-page);
-  color: var(--color-ink);
-  min-height: 100vh;
-  margin-top: -82px;
-  padding-top: 82px;
-  transition: background 0.35s ease, color 0.35s ease;
-}
-
-.profile-theme[data-theme="reading-room"] {
-  --color-page: #eef0e3;
-  --color-ink: #232f1f;
-  --color-primary: #5c7a4f;
-}
-.profile-theme[data-theme="night-shelf"] {
-  --color-page: #302c25;
-  --color-ink: #efe3cf;
-  --color-primary: #b98956;
-  /* A pure-white card would blow out against this near-black page — raise
-     the surface off the page instead of jumping straight to white. */
-  --color-surface: color-mix(in srgb, var(--color-page) 85%, white 15%);
-}
-
-.profile-theme[data-theme="night-shelf"] {
-  background:
-    linear-gradient(
-      to top,
-      color-mix(in srgb, var(--color-page) 82%, var(--color-primary) 18%) 0,
-      transparent 8rem
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--color-page) 84%, var(--color-primary) 16%) 0,
-      transparent 8rem
-    ),
-    var(--color-page);
-}
-.profile-theme[data-theme="sun-faded"] {
-  --color-page: #f3e6cf;
-  --color-ink: #4a3826;
-  --color-primary: #b5652f;
-}
-.profile-theme[data-theme="ink-slate"] {
-  --color-page: #e6e9ee;
-  --color-ink: #23272e;
-  --color-primary: #3a5975;
-}
-
-.min-h-screen:has(.profile-theme[data-theme="reading-room"]) .nav-shell {
-  --color-page: #eef0e3;
-  --color-ink: #232f1f;
-  --color-primary: #5c7a4f;
-}
-
-.min-h-screen:has(.profile-theme[data-theme="night-shelf"]) .nav-shell {
-  --color-page: #302c25;
-  --color-ink: #efe3cf;
-  --color-primary: #b98956;
-}
-
-.min-h-screen:has(.profile-theme[data-theme="sun-faded"]) .nav-shell {
-  --color-page: #f3e6cf;
-  --color-ink: #4a3826;
-  --color-primary: #b5652f;
-}
-
-.min-h-screen:has(.profile-theme[data-theme="ink-slate"]) .nav-shell {
-  --color-page: #e6e9ee;
-  --color-ink: #23272e;
-  --color-primary: #3a5975;
-}
-
-.min-h-screen:has(.profile-theme) .nav-shell::before {
-  background:
-    radial-gradient(
-      ellipse at 8% 45%,
-      color-mix(in srgb, var(--color-page) 72%, var(--color-primary) 28%) 0,
-      transparent 12rem
-    ),
-    radial-gradient(
-      ellipse at 92% 45%,
-      color-mix(in srgb, var(--color-page) 76%, var(--color-primary) 24%) 0,
-      transparent 10rem
-    );
-}
+/* The app-wide theme (--color-page/--color-ink/--color-primary/
+   --color-surface) now lives in AppShell.css as `.app-theme`, covering
+   every authenticated page — Profile only adds the edit-mode accent
+   below on top of those inherited vars. */
 
 /* Text that used a fixed Tailwind gray (not the --color-ink token) needs to
    ride the theme instead, or it goes unreadable on Night Shelf's dark page. */
 .profile-subtext {
   color: color-mix(in srgb, var(--color-ink) 58%, transparent);
+}
+
+.profile-edit-dialog {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.profile-edit-muted {
+  color: color-mix(in srgb, var(--color-ink) 58%, transparent);
+}
+
+.profile-edit-close {
+  color: color-mix(in srgb, var(--color-ink) 48%, transparent);
+}
+
+.profile-edit-close:hover {
+  color: var(--color-ink);
+}
+
+.profile-edit-field {
+  border-color: color-mix(in srgb, var(--color-ink) 18%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 88%, white 12%);
+  color: var(--color-ink);
+}
+
+.app-theme[data-theme="night-shelf"] .profile-edit-field {
+  background: color-mix(in srgb, var(--color-page) 70%, white 6%);
+}
+
+.profile-title-option-idle {
+  background: color-mix(in srgb, var(--color-surface) 88%, white 12%);
+  color: color-mix(in srgb, var(--color-ink) 78%, transparent);
+}
+
+.profile-title-option-selected {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.profile-save-btn {
+  background: var(--color-primary);
+  color: white;
+}
+
+.app-theme[data-theme="night-shelf"] .profile-save-btn {
+  color: #272119;
 }
 
 .profile-header {
@@ -177,6 +123,11 @@
   border-radius: 999px;
   background: #e7caa6;
   padding: 0.25rem 0.8rem;
+  /* Fixed dark text, not the themed --color-ink inherited from
+     .shelf-title-option-preview — this chip's fill is always the same
+     light pastel regardless of theme, so it went unreadable against
+     Night Shelf's light ink token. */
+  color: #2b271f;
 }
 
 .profile-actions {
@@ -188,8 +139,10 @@
 
 /* Edit mode, "bold": a real theme shift, not just the existing crud/add-slot
    silhouettes fading in — a stronger accent-tinted background plus a banner,
-   so being in edit mode is unmistakable at a glance. */
-.profile-theme[data-edit-mode="true"] {
+   so being in edit mode is unmistakable at a glance. Layered on top of the
+   inherited app-wide theme vars, scoped to just the profile page's own
+   content box rather than the whole viewport. */
+.profile-page-surface[data-edit-mode="true"] {
   background:
     linear-gradient(
       to top,
@@ -214,12 +167,6 @@
   color: white;
   font-size: 0.8rem;
   font-weight: 700;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .profile-theme {
-    transition: none;
-  }
 }
 
 @media (max-width: 720px) {

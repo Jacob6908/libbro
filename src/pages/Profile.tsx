@@ -12,9 +12,8 @@ import ShelfRow from "../components/ShelfRow";
 import ProfileEditModal from "../components/ProfileEditModal";
 import GenrePreferencePicker from "../components/GenrePreferencePicker";
 import { STATUS_COLORS, STATUS_LABELS } from "../lib/statusColors";
-import { DEFAULT_BACKGROUND_THEME } from "../lib/backgroundThemes";
-import { DEFAULT_SHELF_TITLE_STYLE } from "../lib/shelfTitleStyles";
-import type { BackgroundTheme, Book, Shelf } from "../types/database.types";
+import { useSetThemePreview } from "../hooks/useThemePreview";
+import type { Book, Shelf } from "../types/database.types";
 import type { ListEntryWithBook } from "../services/supabase/listEntries";
 import "./Profile.css";
 
@@ -99,12 +98,7 @@ export default function Profile() {
     profile?.id
   );
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  // Set while ProfileEditModal is open and the owner is trying out a
-  // different background theme, so the real page previews it live —
-  // cleared (falling back to the saved `profile.background_theme`)
-  // whenever the modal closes, saved or not.
-  const [previewBackgroundTheme, setPreviewBackgroundTheme] =
-    useState<BackgroundTheme | null>(null);
+  const setPreviewTheme = useSetThemePreview();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isAddingShelf, setIsAddingShelf] = useState(false);
   const [newShelfTitle, setNewShelfTitle] = useState("");
@@ -157,15 +151,7 @@ export default function Profile() {
 
   return (
     <main
-      className="profile-theme"
-      data-theme={
-        previewBackgroundTheme ??
-        profile?.background_theme ??
-        DEFAULT_BACKGROUND_THEME
-      }
-      data-shelf-title-style={
-        profile?.shelf_title_style ?? DEFAULT_SHELF_TITLE_STYLE
-      }
+      className="profile-page-surface"
       data-edit-mode={isOwner && isEditMode}
     >
       <div className="mx-auto flex max-w-[88rem] flex-col gap-10 px-6 py-8">
@@ -296,9 +282,9 @@ export default function Profile() {
         <ProfileEditModal
           onClose={() => {
             setIsEditingProfile(false);
-            setPreviewBackgroundTheme(null);
+            setPreviewTheme(null);
           }}
-          onPreviewBackgroundTheme={setPreviewBackgroundTheme}
+          onPreviewBackgroundTheme={setPreviewTheme}
         />
       )}
     </main>

@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { useRecommendationCategories } from "../hooks/useRecommendations";
-import { useProfile } from "../hooks/useProfile";
 import RecommendationShelfRow from "../components/RecommendationShelfRow";
-import { DEFAULT_SHELF_TITLE_STYLE } from "../lib/shelfTitleStyles";
 import type { RecommendationCategory } from "../services/recommendations";
 
 const BOOKS_PER_PREVIEW_ROW = 10;
@@ -24,7 +22,6 @@ function pickRandomCategories(
 }
 
 export default function Recommendations() {
-  const { profile } = useProfile();
   const {
     data: categories,
     isLoading,
@@ -45,12 +42,7 @@ export default function Recommendations() {
   }, [categories]);
 
   return (
-    <main
-      className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8"
-      data-shelf-title-style={
-        profile?.shelf_title_style ?? DEFAULT_SHELF_TITLE_STYLE
-      }
-    >
+    <main className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Recommended for you</h1>
         <div className="flex items-center gap-5">
@@ -67,7 +59,7 @@ export default function Recommendations() {
       </div>
 
       {isLoading && (
-        <p className="text-sm text-gray-500">Loading recommendations...</p>
+        <p className="text-sm text-ink/60">Loading recommendations...</p>
       )}
       {error && (
         <p className="text-sm text-red-600">
@@ -75,7 +67,7 @@ export default function Recommendations() {
         </p>
       )}
       {!isLoading && categories && categories.length === 0 && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-ink/60">
           No recommendations yet - search for a few books and add them to your
           list to get started.
         </p>

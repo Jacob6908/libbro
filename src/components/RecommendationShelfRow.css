@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 360px;
 }
 
 .shelf-row-title {
@@ -10,6 +12,11 @@
   font-size: 1.45rem;
   margin: 0;
   cursor: default;
+  /* .shelf-row is a column flex with the default align-items: stretch,
+     which otherwise stretches this title to the row's full width — and
+     with it, the ledger-rule style's width: 100% hover rule, which is
+     meant to run under just the title, not the whole page. */
+  align-self: flex-start;
 }
 
 /* ---- shelf title style preference (profiles.shelf_title_style) ----

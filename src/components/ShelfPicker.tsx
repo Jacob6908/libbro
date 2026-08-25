@@ -40,7 +40,7 @@ export default function ShelfPicker({ bookId }: { bookId: string }) {
 
   if (shelves.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-ink/60">
         You don't have any shelves yet — create one from your profile to start
         organizing books this way.
       </p>
@@ -49,7 +49,7 @@ export default function ShelfPicker({ bookId }: { bookId: string }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+      <p className="text-xs font-bold uppercase tracking-wide text-ink/60">
         Add to shelves
       </p>
       <div className="flex flex-wrap gap-2">
@@ -63,9 +63,11 @@ export default function ShelfPicker({ bookId }: { bookId: string }) {
               className="rounded-full border-2 px-3 py-1.5 text-sm font-bold"
               style={{
                 background: isMember
-                  ? "color-mix(in srgb, #c4b2c6 30%, white)"
-                  : "white",
-                borderColor: isMember ? "#c4b2c6" : "#e5e7eb",
+                  ? "color-mix(in srgb, #c4b2c6 30%, var(--color-surface))"
+                  : "var(--color-surface)",
+                borderColor: isMember
+                  ? "#c4b2c6"
+                  : "color-mix(in srgb, var(--color-ink) 15%, transparent)",
                 opacity: isMember ? 1 : 0.7,
               }}
             >

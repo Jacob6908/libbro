@@ -29,7 +29,7 @@ export default function GenrePreferencePicker({
 
   if (isLoading) {
     return compact ? null : (
-      <p className="text-sm text-gray-500">Loading genres...</p>
+      <p className="text-sm text-ink/60">Loading genres...</p>
     );
   }
 
@@ -50,9 +50,12 @@ export default function GenrePreferencePicker({
       <>
         <div className="genre-preference-compact flex flex-wrap items-center gap-2">
           {shown.map((genre) => (
+            // Fixed dark text, not the themed `text-ink` — the chip fill
+            // (SPINE_COLORS) is always a light pastel regardless of theme,
+            // so on Night Shelf's light ink token this went unreadable.
             <span
               key={genre.id}
-              className="genre-preference-chip whitespace-nowrap rounded-full font-bold text-ink"
+              className="genre-preference-chip whitespace-nowrap rounded-full font-bold text-[#2b271f]"
               style={{ background: colorByGenreId.get(genre.id) }}
             >
               {genre.name}
@@ -81,7 +84,7 @@ export default function GenrePreferencePicker({
               type="button"
               onClick={() => setIsEditing(true)}
               title="Edit genre preferences"
-              className="genre-preference-add flex flex-none items-center justify-center rounded-full border border-dashed border-gray-300 text-gray-400 hover:border-primary hover:text-primary"
+              className="genre-preference-add flex flex-none items-center justify-center rounded-full border border-dashed border-ink/25 text-ink/40 hover:border-primary hover:text-primary"
             >
               +
             </button>
@@ -102,31 +105,31 @@ export default function GenrePreferencePicker({
   }
 
   return (
-    <section className="flex flex-col gap-3 rounded border bg-white p-4">
+    <section className="flex flex-col gap-3 rounded border bg-surface p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-medium">Genre preferences</h2>
         {isOwnProfile && (
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="rounded border bg-white px-3 py-1.5 text-sm"
+            className="rounded border bg-surface px-3 py-1.5 text-sm"
           >
             Edit genres
           </button>
         )}
       </div>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-ink/70">
         Tell us what you like - this shapes your recommendations.
       </p>
 
       <div className="flex flex-wrap gap-2">
         {selectedGenres.length === 0 ? (
-          <p className="text-sm text-gray-500">No genres selected yet.</p>
+          <p className="text-sm text-ink/60">No genres selected yet.</p>
         ) : (
           selectedGenres.map((genre) => (
             <span
               key={genre.id}
-              className="rounded-full px-3 py-1 text-xs font-medium text-ink"
+              className="rounded-full px-3 py-1 text-xs font-medium text-[#2b271f]"
               style={{ background: colorByGenreId.get(genre.id) }}
             >
               {genre.name}

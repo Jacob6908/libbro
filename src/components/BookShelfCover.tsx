@@ -1,4 +1,5 @@
 import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { Link } from "react-router";
 import { useCoverImageSrc } from "../hooks/useCoverImageSrc";
 import { getTitleSpineColor } from "../lib/genreColors";
 import "./BookShelfCover.css";
@@ -22,6 +23,7 @@ export default function BookShelfCover({
   variant = "default",
   showCaption = true,
   onCoverUnavailable,
+  linkTo,
 }: {
   title: string;
   authors: string[];
@@ -39,6 +41,11 @@ export default function BookShelfCover({
    * appear at all. Library/search contexts omit this and keep the
    * placeholder, since a user's own book shouldn't disappear from view. */
   onCoverUnavailable?: () => void;
+  /** When provided, only the cover art itself becomes the navigable link —
+   * the caption (title/author/badge) stays plain text. Used where a caller
+   * doesn't already wrap the whole card in its own link and wants just the
+   * cover to be the click/hover target, not the caption underneath it. */
+  linkTo?: string;
 }) {
   const { src, handleLoad, handleError } = useCoverImageSrc(coverImageUrl, {
     validateAspectRatio: true,
@@ -54,41 +61,45 @@ export default function BookShelfCover({
     return null;
   }
 
+  const coverStyle =
+    variant === "browse"
+      ? ({ "--tilt": `${getTitleTilt(title).toFixed(2)}deg` } as CSSProperties)
+      : undefined;
+
+  const coverContent = src ? (
+    <img
+      src={src}
+      alt=""
+      className="shelf-card-image"
+      loading="lazy"
+      decoding="async"
+      onLoad={handleLoad}
+      onError={handleError}
+    />
+  ) : (
+    <div
+      className="shelf-card-placeholder"
+      style={{ background: getTitleSpineColor(title) }}
+    >
+      <span className="shelf-card-placeholder-title">{title}</span>
+    </div>
+  );
+
   return (
     <div
       className={
         variant === "browse" ? "shelf-card shelf-card--browse" : "shelf-card"
       }
     >
-      <div
-        className="shelf-card-cover"
-        style={
-          variant === "browse"
-            ? ({
-                "--tilt": `${getTitleTilt(title).toFixed(2)}deg`,
-              } as CSSProperties)
-            : undefined
-        }
-      >
-        {src ? (
-          <img
-            src={src}
-            alt=""
-            className="shelf-card-image"
-            loading="lazy"
-            decoding="async"
-            onLoad={handleLoad}
-            onError={handleError}
-          />
-        ) : (
-          <div
-            className="shelf-card-placeholder"
-            style={{ background: getTitleSpineColor(title) }}
-          >
-            <span className="shelf-card-placeholder-title">{title}</span>
-          </div>
-        )}
-      </div>
+      {linkTo ? (
+        <Link to={linkTo} className="shelf-card-cover" style={coverStyle}>
+          {coverContent}
+        </Link>
+      ) : (
+        <div className="shelf-card-cover" style={coverStyle}>
+          {coverContent}
+        </div>
+      )}
       {showCaption && (
         <div className="shelf-card-caption">
           <p className="shelf-card-title">{title}</p>

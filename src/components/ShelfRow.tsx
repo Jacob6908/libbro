@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { Link } from "react-router";
 import type { Book } from "../types/database.types";
 import { getTitleSpineColor } from "../lib/genreColors";
 import BookShelfCover from "./BookShelfCover";
@@ -122,27 +121,23 @@ export default function ShelfRow({
       ) : (
         <div className="shelf-row-scroll library-shelf-row-scroll">
           {books.map((book) => (
-            <Link
+            <div
               key={book.id}
-              to={`/books/${book.id}`}
-              className="shelf-card-btn shelf-row-item library-shelf-row-item"
+              className="shelf-card-frame shelf-row-item library-shelf-row-item"
             >
               <BookShelfCover
                 title={book.title}
                 authors={book.authors}
                 coverImageUrl={book.cover_image_url}
+                linkTo={`/books/${book.id}`}
                 badge={
                   <>
                     {badgeFor?.(book.id)}
                     {!isAuto && (
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          onRemoveBook?.(book.id);
-                        }}
-                        className={`float remove-badge${isEditMode ? " is-visible" : ""}`}
+                        onClick={() => onRemoveBook?.(book.id)}
+                        className={`glide-link remove-badge${isEditMode ? " is-visible" : ""}`}
                       >
                         ✕ Remove from shelf
                       </button>
@@ -150,7 +145,7 @@ export default function ShelfRow({
                   </>
                 }
               />
-            </Link>
+            </div>
           ))}
           {!isAuto && (
             <button

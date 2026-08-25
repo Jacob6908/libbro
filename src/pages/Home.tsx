@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { useAuth } from "../hooks/useAuth";
 import { useProfile } from "../hooks/useProfile";
 import { useMyList } from "../hooks/useMyList";
 import { useListEntry } from "../hooks/useListEntry";
@@ -7,6 +8,10 @@ import {
   useRecommendationCategories,
   useSimilarBooks,
 } from "../hooks/useRecommendations";
+import {
+  getPinnedSpotlightBookId,
+  setPinnedSpotlightBookId,
+} from "../lib/homeSpotlight";
 import AvatarImage from "../components/AvatarImage";
 import ListEntryRow from "../components/ListEntryRow";
 import ListEntryModal from "../components/ListEntryModal";
@@ -14,26 +19,48 @@ import RecommendationShelfRow from "../components/RecommendationShelfRow";
 import BookShelfCover from "../components/BookShelfCover";
 import "../components/BookShelfCover.css";
 import "../components/RecommendationShelfRow.css";
+import "./Home.css";
 
 const UP_NEXT_COUNT = 6;
 
 export default function Home() {
+  const { user } = useAuth();
   const { profile } = useProfile();
   const { entries, isLoading: isListLoading } = useMyList();
   const { data: recommendationCategories } = useRecommendationCategories(10);
   const [isEditingSpotlight, setIsEditingSpotlight] = useState(false);
+  // The book the user last clicked in the "currently reading" stack, kept
+  // across reloads via localStorage (see `lib/homeSpotlight.ts`) - cleared
+  // automatically when a book newly transitions to "reading" status
+  // (`useListEntry.ts`), not just on a progress update.
+  // `RequireAuth` guarantees `user` is already resolved by the time this
+  // page mounts, so the pin can be read as the initial state directly.
+  const [focusedBookId, setFocusedBookId] = useState<string | null>(() =>
+    user ? getPinnedSpotlightBookId(user.id) : null
+  );
 
   // `entries` is already ordered by updated_at desc, so the first reading
-  // entry is the most recently touched one.
+  // entry is the most recently touched one, and the default focus.
   const readingEntries = entries.filter((entry) => entry.status === "reading");
-  const spotlight = readingEntries[0] ?? null;
-  const otherReading = readingEntries.slice(1);
+  // Stays on the default entry even after the user switches the spotlight
+  // in-page, so "Because you're reading..." only changes on the next page
+  // load rather than reshuffling on every click.
+  const defaultReadingEntry = readingEntries[0] ?? null;
+  const spotlight =
+    (focusedBookId &&
+      readingEntries.find((entry) => entry.book_id === focusedBookId)) ||
+    defaultReadingEntry;
+  const otherReading = readingEntries.filter(
+    (entry) => entry.id !== spotlight?.id
+  );
   const upNext = entries
     .filter((entry) => entry.status === "want_to_read")
     .slice(0, UP_NEXT_COUNT);
   const recommendedRow = recommendationCategories?.[0] ?? null;
 
-  const { data: similarBooks } = useSimilarBooks(spotlight?.book_id ?? "");
+  const { data: similarBooks } = useSimilarBooks(
+    defaultReadingEntry?.book_id ?? ""
+  );
   const {
     entry: spotlightListEntry,
     save: saveSpotlight,
@@ -43,7 +70,7 @@ export default function Home() {
   } = useListEntry(spotlight?.book_id ?? "");
 
   return (
-    <main className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8">
+    <main className="home-page mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <AvatarImage url={profile?.avatar_url ?? null} size={44} />
@@ -54,7 +81,10 @@ export default function Home() {
             </p>
           </div>
         </div>
-        <Link to="/profile" className="text-sm font-semibold text-primary">
+        <Link
+          to="/profile"
+          className="glide-link text-sm font-semibold text-primary"
+        >
           View full profile →
         </Link>
       </div>
@@ -68,7 +98,10 @@ export default function Home() {
           <h2 className="font-serif text-2xl font-semibold">
             Continue reading
           </h2>
-          <div className="grid grid-cols-[176px_1fr] items-center gap-6 rounded-2xl bg-surface p-6 shadow-sm">
+          <div
+            key={spotlight.id}
+            className="home-spotlight-card grid items-center gap-6 rounded-2xl bg-surface p-6 shadow-sm"
+          >
             <BookShelfCover
               title={spotlight.book.title}
               authors={[]}
@@ -99,7 +132,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setIsEditingSpotlight(true)}
-                className="mt-1 w-fit rounded-full border bg-surface px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
+                className="float mt-1 w-fit rounded-full border bg-surface px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
               >
                 Update progress
               </button>
@@ -110,7 +143,15 @@ export default function Home() {
             <ul className="flex flex-col gap-2">
               {otherReading.map((entry) => (
                 <li key={entry.id}>
-                  <ListEntryRow entry={entry} />
+                  <ListEntryRow
+                    entry={entry}
+                    onSelect={() => {
+                      setFocusedBookId(entry.book_id);
+                      if (user) {
+                        setPinnedSpotlightBookId(user.id, entry.book_id);
+                      }
+                    }}
+                  />
                 </li>
               ))}
             </ul>
@@ -118,9 +159,9 @@ export default function Home() {
         </section>
       )}
 
-      {spotlight && similarBooks && similarBooks.length > 0 && (
+      {defaultReadingEntry && similarBooks && similarBooks.length > 0 && (
         <RecommendationShelfRow
-          title={`Because you're reading ${spotlight.book.title}`}
+          title={`Because you're reading ${defaultReadingEntry.book.title}`}
           books={similarBooks}
         />
       )}
@@ -129,17 +170,19 @@ export default function Home() {
         <section className="flex flex-col gap-3">
           <div className="flex items-baseline justify-between">
             <h2 className="font-serif text-2xl font-semibold">Up next</h2>
-            <Link to="/profile" className="text-sm font-semibold text-primary">
+            <Link
+              to="/profile"
+              className="glide-link text-sm font-semibold text-primary"
+            >
               See your full list →
             </Link>
           </div>
-          <div className="flex gap-6 overflow-x-auto pb-1">
+          <div className="home-up-next-scroll flex gap-6 overflow-x-auto pb-1">
             {upNext.map((entry) => (
               <Link
                 key={entry.id}
                 to={`/books/${entry.book.id}`}
-                className="shelf-card-btn"
-                style={{ width: 156, flex: "0 0 156px" }}
+                className="shelf-card-btn home-up-next-item"
               >
                 <BookShelfCover
                   title={entry.book.title}
@@ -157,7 +200,7 @@ export default function Home() {
           <div className="flex justify-end">
             <Link
               to="/recommendations"
-              className="text-sm font-semibold text-primary"
+              className="glide-link text-sm font-semibold text-primary"
             >
               View all recommended →
             </Link>
@@ -175,6 +218,7 @@ export default function Home() {
           pageCount={spotlight.book.page_count}
           title={spotlight.book.title}
           authors={spotlight.book.authors}
+          coverImageUrl={spotlight.book.cover_image_url}
           onSave={(input) => {
             saveSpotlight(input);
             setIsEditingSpotlight(false);

@@ -67,7 +67,7 @@ export default function ShelfRow({
             <button
               type="button"
               onClick={submitRename}
-              className="row-icon-btn"
+              className="float-icon row-icon-btn"
               title="Save"
             >
               ✓
@@ -75,7 +75,7 @@ export default function ShelfRow({
             <button
               type="button"
               onClick={() => setIsRenaming(false)}
-              className="row-icon-btn"
+              className="float-icon row-icon-btn"
               title="Cancel"
             >
               ✕
@@ -98,7 +98,7 @@ export default function ShelfRow({
                 <button
                   type="button"
                   onClick={startRename}
-                  className="row-icon-btn"
+                  className="float-icon row-icon-btn"
                   title="Rename shelf"
                 >
                   ✎
@@ -106,7 +106,7 @@ export default function ShelfRow({
                 <button
                   type="button"
                   onClick={onDelete}
-                  className="row-icon-btn danger"
+                  className="float-icon row-icon-btn danger"
                   title="Delete shelf"
                 >
                   ✕
@@ -142,7 +142,7 @@ export default function ShelfRow({
                           e.stopPropagation();
                           onRemoveBook?.(book.id);
                         }}
-                        className={`remove-badge${isEditMode ? " is-visible" : ""}`}
+                        className={`float remove-badge${isEditMode ? " is-visible" : ""}`}
                       >
                         ✕ Remove from shelf
                       </button>
@@ -155,7 +155,7 @@ export default function ShelfRow({
           {!isAuto && (
             <button
               type="button"
-              className={`add-slot${isEditMode ? " is-visible" : ""}`}
+              className={`float add-slot${isEditMode ? " is-visible" : ""}`}
               // Deferred: this will open the add-book picker in a later pass.
             >
               <span className="add-slot-cover">

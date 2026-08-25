@@ -1,0 +1,29 @@
+/* "Ghost row" - flat at rest, only a hairline against its neighbor. Lifts
+   on hover with the same spring easing/shadow-underneath treatment as the
+   nav bar (ADR-010's floating-hover pattern), rather than a permanent
+   border/box around every row. */
+.list-entry-row {
+  border-top: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
+  background: transparent;
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.18s ease,
+    box-shadow 0.22s ease;
+}
+
+.list-entry-row:hover {
+  transform: translateY(-3px);
+  background: var(--color-surface);
+  box-shadow: 0 10px 18px -14px rgba(43, 39, 31, 0.45);
+}
+
+.list-entry-row:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list-entry-row {
+    transition: none;
+  }
+}

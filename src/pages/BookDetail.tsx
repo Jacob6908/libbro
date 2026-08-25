@@ -71,6 +71,7 @@ export default function BookDetail() {
         pageCount={book.page_count}
         title={book.title}
         authors={book.authors}
+        coverImageUrl={book.cover_image_url}
       />
       <ShelfPicker bookId={book.id} />
       <SimilarBooks bookId={book.id} />

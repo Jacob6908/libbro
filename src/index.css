@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/interactive.css";
 
 @theme {
   --color-page: #f6f1e8;

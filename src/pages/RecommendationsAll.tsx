@@ -15,7 +15,7 @@ export default function RecommendationsAll() {
     <main className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">All recommendations</h1>
-        <Link to="/recommendations" className="text-sm text-primary underline">
+        <Link to="/recommendations" className="glide-link text-sm text-primary">
           Back to recommended
         </Link>
       </div>

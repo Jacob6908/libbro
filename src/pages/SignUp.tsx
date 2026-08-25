@@ -98,7 +98,10 @@ export default function SignUp() {
             We sent a confirmation link to {email}. Follow it to finish creating
             your account.
           </p>
-          <Link to="/signin" className="text-sm font-semibold text-primary">
+          <Link
+            to="/signin"
+            className="glide-link text-sm font-semibold text-primary"
+          >
             Back to sign in
           </Link>
         </div>
@@ -198,7 +201,7 @@ export default function SignUp() {
             type="button"
             onClick={() => createAccount()}
             disabled={submitting}
-            className="rounded bg-primary px-7 py-2.5 font-bold text-white disabled:opacity-50"
+            className="float rounded bg-primary px-7 py-2.5 font-bold text-white disabled:opacity-50"
           >
             {submitting ? "Creating account..." : "Create account"}
           </button>
@@ -208,7 +211,7 @@ export default function SignUp() {
       <Link
         to="/signin"
         onClick={handleSignInClick}
-        className="text-sm text-ink/55"
+        className="glide-link text-sm text-ink/55"
       >
         Already have an account?{" "}
         <span className="font-semibold text-primary">Sign in</span>

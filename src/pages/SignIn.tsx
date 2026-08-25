@@ -142,7 +142,7 @@ export default function SignIn() {
             type="button"
             onClick={() => signIn()}
             disabled={submitting}
-            className="rounded bg-primary px-7 py-2.5 font-bold text-white disabled:opacity-50"
+            className="float rounded bg-primary px-7 py-2.5 font-bold text-white disabled:opacity-50"
           >
             {submitting ? "Signing in..." : "Sign in"}
           </button>
@@ -150,13 +150,13 @@ export default function SignIn() {
       </form>
 
       <div className="flex justify-center gap-6 text-sm">
-        <Link to="/forgot-password" className="text-ink/55">
+        <Link to="/forgot-password" className="glide-link text-ink/55">
           Forgot password?
         </Link>
         <Link
           to="/signup"
           onClick={handleCreateAccountClick}
-          className="text-ink/55"
+          className="glide-link text-ink/55"
         >
           Create an account
         </Link>

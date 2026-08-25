@@ -72,7 +72,7 @@ export default function ResetPassword() {
           </p>
           <Link
             to="/forgot-password"
-            className="text-sm font-semibold text-primary"
+            className="glide-link text-sm font-semibold text-primary"
           >
             Request a new reset link
           </Link>
@@ -150,7 +150,7 @@ export default function ResetPassword() {
             type="button"
             onClick={() => savePassword()}
             disabled={submitting}
-            className="rounded bg-primary px-7 py-2.5 font-bold text-white disabled:opacity-50"
+            className="float rounded bg-primary px-7 py-2.5 font-bold text-white disabled:opacity-50"
           >
             {submitting ? "Saving..." : "Save new password"}
           </button>

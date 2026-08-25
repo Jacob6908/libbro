@@ -60,7 +60,9 @@ export default function ShelfPicker({ bookId }: { bookId: string }) {
               key={shelf.id}
               type="button"
               onClick={() => toggleMutation.mutate(shelf.id)}
-              className="rounded-full border-2 px-3 py-1.5 text-sm font-bold"
+              className={`press-pill rounded-full border-2 px-3 py-1.5 text-sm font-bold ${
+                isMember ? "is-selected opacity-100" : "opacity-70"
+              }`}
               style={{
                 background: isMember
                   ? "color-mix(in srgb, #c4b2c6 30%, var(--color-surface))"
@@ -68,7 +70,6 @@ export default function ShelfPicker({ bookId }: { bookId: string }) {
                 borderColor: isMember
                   ? "#c4b2c6"
                   : "color-mix(in srgb, var(--color-ink) 15%, transparent)",
-                opacity: isMember ? 1 : 0.7,
               }}
             >
               {isMember ? "✓ " : "+ "}

@@ -1,0 +1,31 @@
+.list-entry-modal-body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: start;
+}
+
+.list-entry-modal-cover-stage {
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem 0 1rem;
+}
+
+.list-entry-modal-cover {
+  width: min(100%, 176px);
+}
+
+@media (max-width: 640px) {
+  .list-entry-modal-body {
+    grid-template-columns: 1fr;
+  }
+
+  .list-entry-modal-cover-stage {
+    max-width: 240px;
+    justify-self: center;
+    width: 100%;
+  }
+
+  .list-entry-modal-cover {
+    width: 150px;
+  }
+}

@@ -60,7 +60,7 @@ export default function GenrePreferenceModal({
             type="button"
             aria-label="Close"
             onClick={onCancel}
-            className="text-xl leading-none text-ink/40 hover:text-ink/70"
+            className="float-icon text-xl leading-none text-ink/40 hover:text-ink/70"
           >
             ×
           </button>
@@ -120,7 +120,7 @@ export default function GenrePreferenceModal({
                     type="button"
                     aria-label={`Remove ${genre.name}`}
                     onClick={() => toggle(genre.id)}
-                    className="flex h-4 w-4 items-center justify-center rounded-full bg-black/10 text-[11px]"
+                    className="float-icon flex h-4 w-4 items-center justify-center rounded-full bg-black/10 text-[11px]"
                   >
                     ×
                   </button>
@@ -136,7 +136,7 @@ export default function GenrePreferenceModal({
               type="button"
               onClick={onCancel}
               disabled={isSaving}
-              className="rounded border bg-surface px-3 py-2 text-sm disabled:opacity-50"
+              className="float rounded border bg-surface px-3 py-2 text-sm disabled:opacity-50"
             >
               Skip for now
             </button>
@@ -144,7 +144,7 @@ export default function GenrePreferenceModal({
               type="button"
               onClick={() => onSave(selected)}
               disabled={isSaving}
-              className="rounded bg-primary px-3 py-2 text-sm text-white disabled:opacity-50"
+              className="float rounded bg-primary px-3 py-2 text-sm text-white disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save preferences"}
             </button>

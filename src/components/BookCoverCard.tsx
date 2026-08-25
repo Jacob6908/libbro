@@ -10,29 +10,34 @@ export default function BookCoverCard({
   authors: string[];
   coverImageUrl?: string | null;
 }) {
-  const { src, handleError } = useCoverImageSrc(coverImageUrl);
+  const { src, handleLoad, handleError } = useCoverImageSrc(coverImageUrl, {
+    validateAspectRatio: true,
+  });
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-4">
       {src ? (
         <img
           src={src}
           alt=""
-          className="h-16 w-11 flex-none rounded object-cover"
+          className="h-20 w-14 flex-none rounded-sm object-cover"
           loading="lazy"
           decoding="async"
+          onLoad={handleLoad}
           onError={handleError}
         />
       ) : (
         <div
-          className="h-16 w-11 flex-none rounded"
+          className="h-20 w-14 flex-none rounded-sm"
           style={{ background: getTitleSpineColor(title) }}
         />
       )}
-      <div>
-        <p className="font-medium">{title}</p>
+      <div className="min-w-0">
+        <p className="truncate font-serif text-base font-bold">{title}</p>
         {authors.length > 0 && (
-          <p className="text-sm text-ink/70">{authors.join(", ")}</p>
+          <p className="truncate text-xs tracking-wide text-ink/60 uppercase">
+            {authors.join(", ")}
+          </p>
         )}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useCoverImageSrc } from "../hooks/useCoverImageSrc";
 import { getTitleSpineColor } from "../lib/genreColors";
 import "./BookShelfCover.css";
@@ -21,6 +21,7 @@ export default function BookShelfCover({
   badge,
   variant = "default",
   showCaption = true,
+  onCoverUnavailable,
 }: {
   title: string;
   authors: string[];
@@ -31,8 +32,27 @@ export default function BookShelfCover({
    * instead of the default's always-visible ledge. Used on the search page. */
   variant?: "default" | "browse";
   showCaption?: boolean;
+  /** When provided, the card renders nothing (instead of the color/title
+   * placeholder) once the cover image is confirmed unusable, and this fires
+   * so the caller can drop the book from its list entirely - used by
+   * recommendation contexts, where a book with no working cover shouldn't
+   * appear at all. Library/search contexts omit this and keep the
+   * placeholder, since a user's own book shouldn't disappear from view. */
+  onCoverUnavailable?: () => void;
 }) {
-  const { src, handleError } = useCoverImageSrc(coverImageUrl);
+  const { src, handleLoad, handleError } = useCoverImageSrc(coverImageUrl, {
+    validateAspectRatio: true,
+  });
+
+  useEffect(() => {
+    if (onCoverUnavailable && src === null) {
+      onCoverUnavailable();
+    }
+  }, [onCoverUnavailable, src]);
+
+  if (!src && onCoverUnavailable) {
+    return null;
+  }
 
   return (
     <div
@@ -57,6 +77,7 @@ export default function BookShelfCover({
             className="shelf-card-image"
             loading="lazy"
             decoding="async"
+            onLoad={handleLoad}
             onError={handleError}
           />
         ) : (

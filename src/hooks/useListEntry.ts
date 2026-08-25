@@ -6,6 +6,7 @@ import {
   upsertListEntry,
 } from "../services/supabase/listEntries";
 import type { ReadingStatus } from "../types/database.types";
+import { clearPinnedSpotlightBookId } from "../lib/homeSpotlight";
 
 export interface SaveListEntryInput {
   status: ReadingStatus;
@@ -51,9 +52,20 @@ export function useListEntry(bookId: string) {
         finishedAt,
       });
     },
-    onSuccess: (entry) => {
+    onMutate: () => ({ previousStatus: entryQuery.data?.status ?? null }),
+    onSuccess: (entry, _input, context) => {
       queryClient.setQueryData(queryKey, entry);
       queryClient.invalidateQueries({ queryKey: allEntriesQueryKey });
+      // A book newly moving into "reading" (not just a progress update on
+      // one already reading) should retake the home dashboard spotlight,
+      // so drop any pinned book the user had focused there instead.
+      if (
+        entry.status === "reading" &&
+        context.previousStatus !== "reading" &&
+        user
+      ) {
+        clearPinnedSpotlightBookId(user.id);
+      }
     },
   });
 

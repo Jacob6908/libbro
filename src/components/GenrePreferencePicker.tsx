@@ -65,7 +65,7 @@ export default function GenrePreferencePicker({
             <button
               type="button"
               onClick={() => setIsExpanded(true)}
-              className="genre-preference-text-btn profile-subtext font-bold hover:text-primary"
+              className="glide-link genre-preference-text-btn profile-subtext font-bold hover:text-primary"
             >
               +{extra} more
             </button>
@@ -74,7 +74,7 @@ export default function GenrePreferencePicker({
             <button
               type="button"
               onClick={() => setIsExpanded(false)}
-              className="genre-preference-text-btn profile-subtext font-bold hover:text-primary"
+              className="glide-link genre-preference-text-btn profile-subtext font-bold hover:text-primary"
             >
               Show less
             </button>
@@ -84,7 +84,7 @@ export default function GenrePreferencePicker({
               type="button"
               onClick={() => setIsEditing(true)}
               title="Edit genre preferences"
-              className="genre-preference-add flex flex-none items-center justify-center rounded-full border border-dashed border-ink/25 text-ink/40 hover:border-primary hover:text-primary"
+              className="float-icon genre-preference-add flex flex-none items-center justify-center rounded-full border border-dashed border-ink/25 text-ink/40 hover:border-primary hover:text-primary"
             >
               +
             </button>
@@ -112,7 +112,7 @@ export default function GenrePreferencePicker({
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="rounded border bg-surface px-3 py-1.5 text-sm"
+            className="float rounded border bg-surface px-3 py-1.5 text-sm"
           >
             Edit genres
           </button>

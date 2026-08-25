@@ -24,7 +24,7 @@ export function useRecommendationCategories(booksPerCategory = 12) {
     queryKey: ["recommendation-categories", user?.id, booksPerCategory],
     queryFn: () => getRecommendationCategories(user!.id, booksPerCategory),
     enabled: !!user,
-    staleTime: 60 * 60 * 1000,
+    staleTime: 24 * 60 * 60 * 1000,
   });
 }
 

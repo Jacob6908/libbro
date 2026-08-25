@@ -76,7 +76,7 @@ export default function ProfileEditModal({
           <button
             type="button"
             onClick={onClose}
-            className="profile-edit-close"
+            className="float-icon profile-edit-close"
             aria-label="Close"
           >
             ✕
@@ -169,7 +169,7 @@ function AvatarUploader({
           type="button"
           disabled={isUploading}
           onClick={() => inputRef.current?.click()}
-          className="profile-edit-field w-fit rounded-full border px-3 py-1.5 text-sm font-semibold disabled:opacity-50"
+          className="float profile-edit-field w-fit rounded-full border px-3 py-1.5 text-sm font-semibold disabled:opacity-50"
         >
           {isUploading ? "Uploading..." : "Change photo"}
         </button>
@@ -254,7 +254,7 @@ function ProfileForm({
                 setBackgroundTheme(theme.key);
                 onPreviewBackgroundTheme(theme.key);
               }}
-              className={`flex h-11 flex-col items-center justify-center rounded-lg border-2 ${
+              className={`press-swatch flex h-11 flex-col items-center justify-center rounded-lg border-2 ${
                 backgroundTheme === theme.key
                   ? "border-primary"
                   : "border-transparent"
@@ -281,7 +281,7 @@ function ProfileForm({
               key={style.key}
               type="button"
               onClick={() => setShelfTitleStyle(style.key)}
-              className={`shelf-title-option rounded-lg border-2 px-3 py-2 text-left ${
+              className={`press-card shelf-title-option rounded-lg border-2 px-3 py-2 text-left ${
                 shelfTitleStyle === style.key
                   ? "profile-title-option-selected"
                   : "profile-title-option-idle border-transparent"
@@ -318,7 +318,7 @@ function ProfileForm({
             shelf_title_style: shelfTitleStyle,
           })
         }
-        className="profile-save-btn w-fit rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50"
+        className="float profile-save-btn w-fit rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50"
       >
         {isSaving ? "Saving..." : "Save profile"}
       </button>

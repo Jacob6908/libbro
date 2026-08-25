@@ -46,12 +46,12 @@ export default function Recommendations() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Recommended for you</h1>
         <div className="flex items-center gap-5">
-          <Link to="/profile" className="text-sm text-primary underline">
+          <Link to="/profile" className="glide-link text-sm text-primary">
             Edit genre preferences
           </Link>
           <Link
             to="/recommendations/all"
-            className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
+            className="float rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
           >
             View all recommended
           </Link>

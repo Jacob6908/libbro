@@ -191,14 +191,14 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => setIsEditingProfile(true)}
-                className="rounded-full border bg-surface px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
+                className="float rounded-full border bg-surface px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
               >
                 ✎ Edit profile
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditMode((v) => !v)}
-                className={`rounded-full px-4 py-2 text-sm font-bold ${
+                className={`press-pill rounded-full px-4 py-2 text-sm font-bold ${
                   isEditMode ? "bg-ink text-page" : "bg-primary text-white"
                 }`}
               >
@@ -248,7 +248,7 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={submitNewShelf}
-                  className="text-sm font-semibold text-primary"
+                  className="glide-link text-sm font-semibold text-primary"
                 >
                   Add
                 </button>
@@ -258,7 +258,7 @@ export default function Profile() {
                     setIsAddingShelf(false);
                     setNewShelfTitle("");
                   }}
-                  className="profile-subtext text-sm"
+                  className="glide-link profile-subtext text-sm"
                 >
                   Cancel
                 </button>
@@ -267,7 +267,7 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => setIsAddingShelf(true)}
-                className="profile-subtext flex items-center gap-3 rounded-lg border border-dashed bg-surface px-5 py-4 text-left text-sm font-bold hover:border-primary hover:text-primary"
+                className="float profile-subtext flex items-center gap-3 rounded-lg border border-dashed bg-surface px-5 py-4 text-left text-sm font-bold hover:border-primary hover:text-primary"
               >
                 <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full border border-dashed border-current text-base">
                   +

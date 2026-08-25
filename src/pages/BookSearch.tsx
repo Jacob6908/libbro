@@ -170,7 +170,7 @@ export default function BookSearch() {
             )}
             <button
               type="button"
-              className="book-spread-close"
+              className="float book-spread-close"
               onClick={closeSpread}
             >
               Close

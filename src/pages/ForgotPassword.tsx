@@ -55,7 +55,10 @@ export default function ForgotPassword() {
             If an account exists for {email}, a password reset link is on its
             way.
           </p>
-          <Link to="/signin" className="text-sm font-semibold text-primary">
+          <Link
+            to="/signin"
+            className="glide-link text-sm font-semibold text-primary"
+          >
             Back to sign in
           </Link>
         </div>
@@ -110,14 +113,14 @@ export default function ForgotPassword() {
             type="button"
             onClick={() => sendResetLink()}
             disabled={submitting}
-            className="rounded bg-primary px-7 py-2.5 font-bold text-white disabled:opacity-50"
+            className="float rounded bg-primary px-7 py-2.5 font-bold text-white disabled:opacity-50"
           >
             {submitting ? "Sending..." : "Send reset link"}
           </button>
         </div>
       </form>
 
-      <Link to="/signin" className="text-sm text-ink/55">
+      <Link to="/signin" className="glide-link text-sm text-ink/55">
         Back to sign in
       </Link>
     </main>

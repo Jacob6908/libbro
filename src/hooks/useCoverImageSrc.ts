@@ -3,12 +3,14 @@ import { getCoverImageFallbackUrl } from "../lib/googleBooksCoverUrl";
 
 /**
  * Real book covers are consistently portrait (Google Books thumbnails run
- * ~1.5-1.7 height/width). The broken responses this guards against are
- * either a near-square placeholder graphic or a heavily cropped sliver, both
- * well under this ratio - checked with margin so legitimate covers never
- * trip it.
+ * ~1.5-1.7 height/width). The broken responses this guards against are a
+ * near-square placeholder graphic, a heavily cropped sliver, or - observed
+ * directly against a `books/publisher/content` thumbnail that rendered a
+ * scanned interior page instead of a cover - a full page scan at ~1.447.
+ * Set just above that measured value, with margin still under the real
+ * range so legitimate covers don't trip it.
  */
-const MIN_COVER_ASPECT_RATIO = 1.4;
+const MIN_COVER_ASPECT_RATIO = 1.46;
 
 /**
  * Renders `coverImageUrl` with a same-book fallback for Google Books cover

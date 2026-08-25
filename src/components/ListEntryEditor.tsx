@@ -8,11 +8,13 @@ export default function ListEntryEditor({
   pageCount,
   title,
   authors,
+  coverImageUrl,
 }: {
   bookId: string;
   pageCount: number | null;
   title: string;
   authors: string[];
+  coverImageUrl?: string | null;
 }) {
   const { entry, isLoading, save, isSaving, remove, isRemoving } =
     useListEntry(bookId);
@@ -28,7 +30,7 @@ export default function ListEntryEditor({
         <button
           type="button"
           onClick={() => setIsEditing(true)}
-          className="flex w-fit items-center gap-2 rounded-full border bg-surface px-4 py-2 text-sm font-bold"
+          className="float flex w-fit items-center gap-2 rounded-full border bg-surface px-4 py-2 text-sm font-bold"
         >
           <span
             className="h-2.5 w-2.5 rounded-full"
@@ -50,7 +52,7 @@ export default function ListEntryEditor({
               review: null,
             })
           }
-          className="w-fit rounded-full bg-primary px-4 py-2 text-sm font-bold text-white"
+          className="float w-fit rounded-full bg-primary px-4 py-2 text-sm font-bold text-white"
         >
           {isSaving ? "Adding..." : "+ Add to your list"}
         </button>
@@ -63,6 +65,7 @@ export default function ListEntryEditor({
           pageCount={pageCount}
           title={title}
           authors={authors}
+          coverImageUrl={coverImageUrl}
           onSave={(input) => {
             save(input);
             setIsEditing(false);

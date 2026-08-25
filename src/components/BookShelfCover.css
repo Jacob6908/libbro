@@ -17,20 +17,26 @@
   }
 }
 
-.shelf-card-btn {
-  /* Native <button> elements keep an internal content-centering behavior
-     that a plain `display: block` doesn't fully override — a taller grid
-     row (from a neighbor's wrapped title) was centering each button's
-     content instead of pinning it to the top, so covers whose caption
-     happened to fit on one line sat visibly lower than a 2-line one.
-     Explicit flex + align-items/justify-content: flex-start pins every
-     card to the top regardless of its own or its row-mates' caption
-     height. */
+/* Native <button> elements keep an internal content-centering behavior that
+   a plain `display: block` doesn't fully override — a taller grid row (from
+   a neighbor's wrapped title) was centering each card's content instead of
+   pinning it to the top, so covers whose caption happened to fit on one
+   line sat visibly lower than a 2-line one. Explicit flex +
+   align-items/justify-content: flex-start pins every card to the top
+   regardless of its own or its row-mates' caption height. Shared by
+   `.shelf-card-btn` (a real link/button wrapping the whole card) and
+   `.shelf-card-frame` (ShelfRow.css — a plain non-interactive wrapper used
+   where only the cover itself, not the whole card, is a link). */
+.shelf-card-btn,
+.shelf-card-frame {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
   width: 100%;
+}
+
+.shelf-card-btn {
   background: none;
   border: none;
   margin: 0;
@@ -82,8 +88,10 @@
 /* Cover-only link (BookShelfCover's `linkTo` prop): the cover itself is the
    `<a>`, not a parent wrapping the whole card, so hover/focus/lift apply
    directly to it — hovering the caption below (title, author, remove
-   control) has no effect on the cover at all. */
-a.shelf-card-cover:hover {
+   control) has no effect on the cover at all. Excludes the "browse" variant,
+   which defines its own tilt-preserving lift below and would otherwise lose
+   it to this rule's higher specificity if the two are ever combined. */
+.shelf-card:not(.shelf-card--browse) > a.shelf-card-cover:hover {
   transform: translateY(-3px);
 }
 

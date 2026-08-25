@@ -31,10 +31,12 @@
 }
 
 /* Fixed-height stage for the progress/rating area: sized for its tallest
-   combination ("dropped" shows both at once) so switching status chips
-   cross-fades the content inside instead of resizing the modal. */
+   combination ("dropped" shows both progress and rating at once — measured
+   at ~146px rendered), with headroom above that measurement so a minor
+   font-metric difference across browsers/OSes doesn't reopen the resize
+   this is meant to prevent. */
 .list-entry-modal-stage {
-  min-height: 148px;
+  min-height: 172px;
 }
 
 .list-entry-modal-stage-content {

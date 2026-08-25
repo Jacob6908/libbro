@@ -92,7 +92,12 @@ export default function BookShelfCover({
       }
     >
       {linkTo ? (
-        <Link to={linkTo} className="shelf-card-cover" style={coverStyle}>
+        <Link
+          to={linkTo}
+          className="shelf-card-cover"
+          style={coverStyle}
+          aria-label={title}
+        >
           {coverContent}
         </Link>
       ) : (

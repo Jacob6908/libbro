@@ -102,19 +102,24 @@ export default function Home() {
             key={spotlight.id}
             className="home-spotlight-card grid items-center gap-6 rounded-2xl bg-surface p-6 shadow-sm"
           >
-            <BookShelfCover
-              title={spotlight.book.title}
-              authors={[]}
-              coverImageUrl={spotlight.book.cover_image_url}
-              showCaption={false}
-            />
+            <Link to={`/books/${spotlight.book_id}`} className="shelf-card-btn">
+              <BookShelfCover
+                title={spotlight.book.title}
+                authors={[]}
+                coverImageUrl={spotlight.book.cover_image_url}
+                showCaption={false}
+              />
+            </Link>
             <div className="flex flex-col justify-center gap-2">
               <p className="text-xs font-bold uppercase tracking-wide text-ink/60">
                 Reading
               </p>
-              <h3 className="font-serif text-xl font-semibold">
+              <Link
+                to={`/books/${spotlight.book_id}`}
+                className="glide-link font-serif text-xl font-semibold"
+              >
                 {spotlight.book.title}
-              </h3>
+              </Link>
               {spotlight.book.authors.length > 0 && (
                 <p className="text-sm text-ink/70">
                   {spotlight.book.authors.join(", ")}

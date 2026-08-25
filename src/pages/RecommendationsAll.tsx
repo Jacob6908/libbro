@@ -1,13 +1,10 @@
 import { Link } from "react-router";
 import { useRecommendationCategories } from "../hooks/useRecommendations";
-import { useProfile } from "../hooks/useProfile";
 import RecommendationShelfRow from "../components/RecommendationShelfRow";
-import { DEFAULT_SHELF_TITLE_STYLE } from "../lib/shelfTitleStyles";
 
 const BOOKS_PER_ROW = 24;
 
 export default function RecommendationsAll() {
-  const { profile } = useProfile();
   const {
     data: categories,
     isLoading,
@@ -15,12 +12,7 @@ export default function RecommendationsAll() {
   } = useRecommendationCategories(BOOKS_PER_ROW);
 
   return (
-    <main
-      className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8"
-      data-shelf-title-style={
-        profile?.shelf_title_style ?? DEFAULT_SHELF_TITLE_STYLE
-      }
-    >
+    <main className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">All recommendations</h1>
         <Link to="/recommendations" className="text-sm text-primary underline">
@@ -29,7 +21,7 @@ export default function RecommendationsAll() {
       </div>
 
       {isLoading && (
-        <p className="text-sm text-gray-500">Loading recommendations...</p>
+        <p className="text-sm text-ink/60">Loading recommendations...</p>
       )}
       {error && (
         <p className="text-sm text-red-600">
@@ -37,7 +29,7 @@ export default function RecommendationsAll() {
         </p>
       )}
       {!isLoading && categories && categories.length === 0 && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-ink/60">
           No recommendations yet - search for a few books and add them to your
           list to get started.
         </p>

@@ -19,9 +19,7 @@ export default function ListEntryEditor({
   const [isEditing, setIsEditing] = useState(false);
 
   if (isLoading) {
-    return (
-      <p className="text-sm text-gray-500">Loading your tracking info...</p>
-    );
+    return <p className="text-sm text-ink/60">Loading your tracking info...</p>;
   }
 
   return (
@@ -30,7 +28,7 @@ export default function ListEntryEditor({
         <button
           type="button"
           onClick={() => setIsEditing(true)}
-          className="flex w-fit items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-bold"
+          className="flex w-fit items-center gap-2 rounded-full border bg-surface px-4 py-2 text-sm font-bold"
         >
           <span
             className="h-2.5 w-2.5 rounded-full"
@@ -38,7 +36,7 @@ export default function ListEntryEditor({
           />
           {STATUS_LABELS[entry.status]}
           {entry.status === "reading" && ` · ${entry.percent_complete}%`}
-          <span className="text-gray-400">· Edit</span>
+          <span className="text-ink/40">· Edit</span>
         </button>
       ) : (
         <button

@@ -23,7 +23,7 @@ export default function BookDetail() {
   } = useCoverImageSrc(book?.cover_image_url, { validateAspectRatio: true });
 
   if (isLoading) {
-    return <p className="p-8 text-sm text-gray-500">Loading...</p>;
+    return <p className="p-8 text-sm text-ink/60">Loading...</p>;
   }
 
   if (!book) {
@@ -51,18 +51,18 @@ export default function BookDetail() {
         <div>
           <h1 className="text-2xl font-semibold">{book.title}</h1>
           {book.subtitle && (
-            <p className="text-lg text-gray-600">{book.subtitle}</p>
+            <p className="text-lg text-ink/70">{book.subtitle}</p>
           )}
           {book.authors.length > 0 && (
-            <p className="text-sm text-gray-600">{book.authors.join(", ")}</p>
+            <p className="text-sm text-ink/70">{book.authors.join(", ")}</p>
           )}
           {book.page_count && (
-            <p className="text-sm text-gray-500">{book.page_count} pages</p>
+            <p className="text-sm text-ink/60">{book.page_count} pages</p>
           )}
         </div>
       </div>
       {book.description && (
-        <p className="whitespace-pre-line text-sm text-gray-800">
+        <p className="whitespace-pre-line text-sm text-ink/85">
           {book.description}
         </p>
       )}

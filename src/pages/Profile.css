@@ -1,49 +1,58 @@
-/* Scoped theme override: only `--color-page`/`--color-ink`/`--color-primary`/
-   `--color-surface` change per theme, and only within this subtree — NavBar
-   and every other page keep the app's default tokens from src/index.css.
-   Shelf spine colors and genre chip colors are unaffected (lib/genreColors.ts
-   is a separate, fixed palette by design).
-
-   Full-bleed, not boxed: this used to be a rounded 12px card of color
-   floating on the plain page, which read as a swatch rather than an actual
-   background. It's now the real backdrop for everything below the nav —
-   full viewport width, and tall enough to reach the bottom of the viewport
-   even when the page's content is short. */
-.profile-theme {
-  background: var(--color-page);
-  color: var(--color-ink);
-  min-height: calc(100vh - 82px);
-  transition: background 0.35s ease, color 0.35s ease;
-}
-
-.profile-theme[data-theme="reading-room"] {
-  --color-page: #eef0e3;
-  --color-ink: #232f1f;
-  --color-primary: #5c7a4f;
-}
-.profile-theme[data-theme="night-shelf"] {
-  --color-page: #1c1a16;
-  --color-ink: #ece6d8;
-  --color-primary: #d8a15c;
-  /* A pure-white card would blow out against this near-black page — raise
-     the surface off the page instead of jumping straight to white. */
-  --color-surface: color-mix(in srgb, var(--color-page) 85%, white 15%);
-}
-.profile-theme[data-theme="sun-faded"] {
-  --color-page: #f3e6cf;
-  --color-ink: #4a3826;
-  --color-primary: #b5652f;
-}
-.profile-theme[data-theme="ink-slate"] {
-  --color-page: #e6e9ee;
-  --color-ink: #23272e;
-  --color-primary: #3a5975;
-}
+/* The app-wide theme (--color-page/--color-ink/--color-primary/
+   --color-surface) now lives in AppShell.css as `.app-theme`, covering
+   every authenticated page — Profile only adds the edit-mode accent
+   below on top of those inherited vars. */
 
 /* Text that used a fixed Tailwind gray (not the --color-ink token) needs to
    ride the theme instead, or it goes unreadable on Night Shelf's dark page. */
 .profile-subtext {
   color: color-mix(in srgb, var(--color-ink) 58%, transparent);
+}
+
+.profile-edit-dialog {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.profile-edit-muted {
+  color: color-mix(in srgb, var(--color-ink) 58%, transparent);
+}
+
+.profile-edit-close {
+  color: color-mix(in srgb, var(--color-ink) 48%, transparent);
+}
+
+.profile-edit-close:hover {
+  color: var(--color-ink);
+}
+
+.profile-edit-field {
+  border-color: color-mix(in srgb, var(--color-ink) 18%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 88%, white 12%);
+  color: var(--color-ink);
+}
+
+.app-theme[data-theme="night-shelf"] .profile-edit-field {
+  background: color-mix(in srgb, var(--color-page) 70%, white 6%);
+}
+
+.profile-title-option-idle {
+  background: color-mix(in srgb, var(--color-surface) 88%, white 12%);
+  color: color-mix(in srgb, var(--color-ink) 78%, transparent);
+}
+
+.profile-title-option-selected {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.profile-save-btn {
+  background: var(--color-primary);
+  color: white;
+}
+
+.app-theme[data-theme="night-shelf"] .profile-save-btn {
+  color: #272119;
 }
 
 .profile-header {
@@ -83,6 +92,44 @@
   font-size: 0.9rem;
 }
 
+.shelf-title-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.shelf-title-option-preview {
+  width: fit-content;
+  color: var(--color-ink);
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.shelf-title-option-preview--spine-tick {
+  border-left: 5px solid #c4b2c6;
+  padding-left: 0.55rem;
+}
+
+.shelf-title-option-preview--ledger-rule {
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 0.2rem;
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+}
+
+.shelf-title-option-preview--chip-wordmark {
+  border-radius: 999px;
+  background: #e7caa6;
+  padding: 0.25rem 0.8rem;
+  /* Fixed dark text, not the themed --color-ink inherited from
+     .shelf-title-option-preview — this chip's fill is always the same
+     light pastel regardless of theme, so it went unreadable against
+     Night Shelf's light ink token. */
+  color: #2b271f;
+}
+
 .profile-actions {
   display: flex;
   align-items: center;
@@ -92,9 +139,22 @@
 
 /* Edit mode, "bold": a real theme shift, not just the existing crud/add-slot
    silhouettes fading in — a stronger accent-tinted background plus a banner,
-   so being in edit mode is unmistakable at a glance. */
-.profile-theme[data-edit-mode="true"] {
-  background: color-mix(in srgb, var(--color-page) 78%, var(--color-primary) 22%);
+   so being in edit mode is unmistakable at a glance. Layered on top of the
+   inherited app-wide theme vars, scoped to just the profile page's own
+   content box rather than the whole viewport. */
+.profile-page-surface[data-edit-mode="true"] {
+  background:
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--color-page) 66%, var(--color-primary) 34%) 0,
+      transparent 8rem
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-page) 70%, var(--color-primary) 30%) 0,
+      transparent 8rem
+    ),
+    var(--color-page);
 }
 
 .profile-edit-banner {
@@ -107,12 +167,6 @@
   color: white;
   font-size: 0.8rem;
   font-weight: 700;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .profile-theme {
-    transition: none;
-  }
 }
 
 @media (max-width: 720px) {

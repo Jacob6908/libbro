@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useProfile } from "../hooks/useProfile";
 import AvatarImage from "./AvatarImage";
@@ -39,7 +39,7 @@ export default function ProfileEditModal({
   const {
     profile,
     isLoading,
-    save,
+    saveAsync,
     isSaving,
     error,
     uploadAvatar,
@@ -47,29 +47,47 @@ export default function ProfileEditModal({
     avatarError,
   } = useProfile();
 
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="flex w-full max-w-md flex-col overflow-hidden rounded bg-white shadow-xl">
-        <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/70 p-6">
+      <div
+        className="profile-edit-dialog flex max-h-[min(760px,calc(100vh-3rem))] w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profile-edit-title"
+      >
+        <div className="flex flex-none items-start justify-between gap-4 border-b border-black/10 px-7 py-5">
           <div>
-            <h2 className="font-medium">Edit profile</h2>
-            <p className="text-sm text-gray-500">
+            <h2 id="profile-edit-title" className="font-medium">
+              Edit profile
+            </h2>
+            <p className="profile-edit-muted text-sm">
               Username, bio, and photo — separate from your book lists.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="profile-edit-close"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        <div className="flex flex-col gap-4 px-6 py-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-7 py-5">
           {isLoading ? (
-            <p className="text-sm text-gray-500">Loading your profile...</p>
+            <p className="profile-edit-muted text-sm">
+              Loading your profile...
+            </p>
           ) : (
             <>
               <AvatarUploader
@@ -81,7 +99,10 @@ export default function ProfileEditModal({
               <ProfileForm
                 key={profile?.id ?? "loading"}
                 profile={profile}
-                onSave={save}
+                onSave={async (patch) => {
+                  await saveAsync(patch);
+                  onClose();
+                }}
                 isSaving={isSaving}
                 error={error}
                 onPreviewBackgroundTheme={onPreviewBackgroundTheme}
@@ -148,7 +169,7 @@ function AvatarUploader({
           type="button"
           disabled={isUploading}
           onClick={() => inputRef.current?.click()}
-          className="w-fit rounded-full border bg-white px-3 py-1.5 text-sm font-semibold disabled:opacity-50"
+          className="profile-edit-field w-fit rounded-full border px-3 py-1.5 text-sm font-semibold disabled:opacity-50"
         >
           {isUploading ? "Uploading..." : "Change photo"}
         </button>
@@ -159,7 +180,7 @@ function AvatarUploader({
           onChange={handleChange}
           className="hidden"
         />
-        <p className="text-xs text-gray-500">
+        <p className="profile-edit-muted text-xs">
           JPEG, PNG, WebP, or GIF - you&apos;ll be able to crop it next.
         </p>
         {displayedError && (
@@ -185,7 +206,7 @@ function ProfileForm({
   onPreviewBackgroundTheme,
 }: {
   profile: ProfileRow | null;
-  onSave: (patch: ProfilePatch) => void;
+  onSave: (patch: ProfilePatch) => Promise<void>;
   isSaving: boolean;
   error: unknown;
   onPreviewBackgroundTheme: (theme: BackgroundTheme) => void;
@@ -207,7 +228,7 @@ function ProfileForm({
           type="text"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
-          className="rounded border bg-white px-2 py-1"
+          className="profile-edit-field rounded border px-2 py-1"
         />
       </label>
 
@@ -217,7 +238,7 @@ function ProfileForm({
           value={bio}
           onChange={(event) => setBio(event.target.value)}
           rows={3}
-          className="rounded border bg-white px-2 py-1"
+          className="profile-edit-field rounded border px-2 py-1"
         />
       </label>
 
@@ -247,26 +268,36 @@ function ProfileForm({
             </button>
           ))}
         </div>
-        <span className="text-xs text-gray-500">
+        <span className="profile-edit-muted text-xs">
           {BACKGROUND_THEMES.find((t) => t.key === backgroundTheme)?.name}
         </span>
       </div>
 
       <div className="flex flex-col gap-1.5 text-sm">
         <span>Shelf title style</span>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           {SHELF_TITLE_STYLES.map((style) => (
             <button
               key={style.key}
               type="button"
               onClick={() => setShelfTitleStyle(style.key)}
-              className={`rounded-lg border-2 px-3 py-1.5 text-left text-sm font-semibold ${
+              className={`shelf-title-option rounded-lg border-2 px-3 py-2 text-left ${
                 shelfTitleStyle === style.key
-                  ? "border-primary text-primary"
-                  : "border-transparent bg-gray-50 text-gray-700"
+                  ? "profile-title-option-selected"
+                  : "profile-title-option-idle border-transparent"
               }`}
             >
-              {style.name}
+              <span className="text-xs font-bold uppercase tracking-wide">
+                {style.name}
+              </span>
+              <span
+                className={`shelf-title-option-preview shelf-title-option-preview--${style.key}`}
+              >
+                {style.sample}
+              </span>
+              <span className="profile-edit-muted text-xs font-normal">
+                {style.description}
+              </span>
             </button>
           ))}
         </div>
@@ -287,7 +318,7 @@ function ProfileForm({
             shelf_title_style: shelfTitleStyle,
           })
         }
-        className="w-fit rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        className="profile-save-btn w-fit rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50"
       >
         {isSaving ? "Saving..." : "Save profile"}
       </button>

@@ -36,6 +36,7 @@ export function useProfile() {
     profile: profileQuery.data ?? null,
     isLoading: profileQuery.isLoading,
     save: saveMutation.mutate,
+    saveAsync: saveMutation.mutateAsync,
     isSaving: saveMutation.isPending,
     error: saveMutation.error,
     uploadAvatar: avatarMutation.mutate,

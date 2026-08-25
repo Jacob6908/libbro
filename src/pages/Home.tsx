@@ -14,7 +14,6 @@ import RecommendationShelfRow from "../components/RecommendationShelfRow";
 import BookShelfCover from "../components/BookShelfCover";
 import "../components/BookShelfCover.css";
 import "../components/RecommendationShelfRow.css";
-import { DEFAULT_SHELF_TITLE_STYLE } from "../lib/shelfTitleStyles";
 
 const UP_NEXT_COUNT = 6;
 
@@ -44,17 +43,12 @@ export default function Home() {
   } = useListEntry(spotlight?.book_id ?? "");
 
   return (
-    <main
-      className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8"
-      data-shelf-title-style={
-        profile?.shelf_title_style ?? DEFAULT_SHELF_TITLE_STYLE
-      }
-    >
+    <main className="mx-auto flex max-w-[88rem] flex-col gap-8 px-6 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <AvatarImage url={profile?.avatar_url ?? null} size={44} />
           <div>
-            <p className="text-xs text-gray-500">Signed in as</p>
+            <p className="text-xs text-ink/60">Signed in as</p>
             <p className="font-serif text-lg font-bold">
               {profile?.username ?? "..."}
             </p>
@@ -66,7 +60,7 @@ export default function Home() {
       </div>
 
       {isListLoading && (
-        <p className="text-sm text-gray-500">Loading your books...</p>
+        <p className="text-sm text-ink/60">Loading your books...</p>
       )}
 
       {spotlight && (
@@ -74,7 +68,7 @@ export default function Home() {
           <h2 className="font-serif text-2xl font-semibold">
             Continue reading
           </h2>
-          <div className="grid grid-cols-[176px_1fr] items-center gap-6 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="grid grid-cols-[176px_1fr] items-center gap-6 rounded-2xl bg-surface p-6 shadow-sm">
             <BookShelfCover
               title={spotlight.book.title}
               authors={[]}
@@ -82,20 +76,20 @@ export default function Home() {
               showCaption={false}
             />
             <div className="flex flex-col justify-center gap-2">
-              <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+              <p className="text-xs font-bold uppercase tracking-wide text-ink/60">
                 Reading
               </p>
               <h3 className="font-serif text-xl font-semibold">
                 {spotlight.book.title}
               </h3>
               {spotlight.book.authors.length > 0 && (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-ink/70">
                   {spotlight.book.authors.join(", ")}
                 </p>
               )}
-              <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
+              <div className="mt-1 flex items-center gap-2 text-sm text-ink/70">
                 <span>{spotlight.percent_complete}% complete</span>
-                <div className="h-1.5 w-40 overflow-hidden rounded-full bg-gray-200">
+                <div className="h-1.5 w-40 overflow-hidden rounded-full bg-ink/15">
                   <div
                     className="h-full rounded-full bg-primary"
                     style={{ width: `${spotlight.percent_complete}%` }}
@@ -105,7 +99,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setIsEditingSpotlight(true)}
-                className="mt-1 w-fit rounded-full border bg-white px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
+                className="mt-1 w-fit rounded-full border bg-surface px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
               >
                 Update progress
               </button>

@@ -37,7 +37,7 @@ export default function AvatarCropModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="flex w-full max-w-sm flex-col gap-4 rounded bg-white p-4">
+      <div className="flex w-full max-w-sm flex-col gap-4 rounded bg-surface p-4">
         <h2 className="font-medium">Crop your photo</h2>
 
         <div className="relative h-64 w-full overflow-hidden rounded bg-gray-900">
@@ -73,7 +73,7 @@ export default function AvatarCropModal({
             type="button"
             onClick={onCancel}
             disabled={isProcessing}
-            className="rounded border bg-white px-3 py-2 text-sm disabled:opacity-50"
+            className="rounded border bg-surface px-3 py-2 text-sm disabled:opacity-50"
           >
             Cancel
           </button>

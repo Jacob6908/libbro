@@ -32,7 +32,7 @@ export default function BookCoverCard({
       <div>
         <p className="font-medium">{title}</p>
         {authors.length > 0 && (
-          <p className="text-sm text-gray-600">{authors.join(", ")}</p>
+          <p className="text-sm text-ink/70">{authors.join(", ")}</p>
         )}
       </div>
     </div>

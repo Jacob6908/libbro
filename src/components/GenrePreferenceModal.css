@@ -66,7 +66,10 @@
   z-index: -1;
 }
 .word-btn.selected {
-  color: var(--color-ink);
+  /* Fixed dark text, not the themed --color-ink: once selected, the mark
+     behind this text is always a light pastel (SPINE_COLORS) regardless
+     of theme, so it needs to stay readable against that, not the page. */
+  color: #2b271f;
 }
 .word-btn.selected .mark {
   right: -1px;

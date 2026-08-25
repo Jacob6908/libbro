@@ -22,7 +22,10 @@
   padding: 0.85rem 1.2rem;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
-  background: color-mix(in srgb, var(--color-page) 30%, #fff 70%);
+  /* --color-surface, not a hardcoded white-mix — this page now inherits
+     the app-wide theme, and a fixed "toward #fff" blend rendered as a
+     near-white pill on Night Shelf's dark page. */
+  background: var(--color-surface);
   color: var(--color-ink);
   box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.3);
 }
@@ -64,7 +67,9 @@
   width: min(760px, 92vw);
   max-height: 82vh;
   overflow: auto;
-  background: color-mix(in srgb, var(--color-page) 15%, #fffdf8 85%);
+  /* --color-surface, same fix as .search-input above — a hardcoded
+     white-mix instead of the theme's surface token. */
+  background: var(--color-surface);
   border-radius: 10px 10px 0 0;
   box-shadow: 0 -20px 60px -20px rgba(0, 0, 0, 0.45);
   z-index: 50;

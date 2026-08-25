@@ -1,0 +1,52 @@
+/* App-wide theme: the chosen background theme now paints behind the nav
+   and every authenticated page, not just /profile. Only `--color-page`/
+   `--color-ink`/`--color-primary`/`--color-surface` change per theme —
+   `.nav-shell` picks them up automatically as a plain descendant, no
+   `:has()` selector trick needed since this wrapper is a true ancestor
+   of both the nav and the routed page.
+   One flat --color-page, on purpose: the earlier top-tinted gradient
+   band plus a separate nav glow made the nav read as its own layered-on
+   surface instead of the same page continuing underneath it — and the
+   torn-edge crease drawn at that boundary just looked broken rather than
+   "physical." Nav and content now share one uniform color with no seam
+   to render at all. */
+.app-theme {
+  background: var(--color-page);
+  color: var(--color-ink);
+  transition: background 0.35s ease, color 0.35s ease;
+}
+
+.app-theme[data-theme="reading-room"] {
+  --color-page: #eef0e3;
+  --color-ink: #232f1f;
+  --color-primary: #5c7a4f;
+}
+
+.app-theme[data-theme="night-shelf"] {
+  --color-page: #343027;
+  --color-ink: #d8c9b1;
+  --color-primary: #a8794d;
+  /* A pure-white card would blow out against this near-black page — raise
+     the surface off the page instead of jumping straight to white. Uses
+     the formula (not a hand-picked hex) so it stays lifted off the page
+     if this palette gets retuned again. */
+  --color-surface: color-mix(in srgb, var(--color-page) 85%, white 15%);
+}
+
+.app-theme[data-theme="sun-faded"] {
+  --color-page: #f3e6cf;
+  --color-ink: #4a3826;
+  --color-primary: #b5652f;
+}
+
+.app-theme[data-theme="ink-slate"] {
+  --color-page: #e6e9ee;
+  --color-ink: #23272e;
+  --color-primary: #3a5975;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-theme {
+    transition: none;
+  }
+}

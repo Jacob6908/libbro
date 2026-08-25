@@ -48,11 +48,11 @@ export default function GenrePreferenceModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="flex w-full max-w-xl flex-col overflow-hidden rounded bg-white shadow-xl">
-        <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
+      <div className="flex w-full max-w-xl flex-col overflow-hidden rounded bg-surface shadow-xl">
+        <div className="flex items-start justify-between gap-4 border-b border-ink/15 px-6 py-4">
           <div>
             <h2 className="font-medium">Edit your shelf</h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-ink/60">
               Tap a genre to highlight it. Tap again to lift the mark.
             </p>
           </div>
@@ -60,7 +60,7 @@ export default function GenrePreferenceModal({
             type="button"
             aria-label="Close"
             onClick={onCancel}
-            className="text-xl leading-none text-gray-400 hover:text-gray-700"
+            className="text-xl leading-none text-ink/40 hover:text-ink/70"
           >
             ×
           </button>
@@ -99,17 +99,20 @@ export default function GenrePreferenceModal({
           </div>
         </div>
 
-        <div className="border-t px-6 py-4">
+        <div className="border-t border-ink/15 px-6 py-4">
           <div className="mb-3 flex min-h-[30px] gap-2 overflow-x-auto">
             {selectedGenres.length === 0 ? (
-              <span className="py-1 text-sm text-gray-500">
+              <span className="py-1 text-sm text-ink/60">
                 No genres selected yet
               </span>
             ) : (
               selectedGenres.map((genre) => (
+                // Fixed dark text, not the themed `text-ink` — this chip's
+                // fill is always a light pastel (SPINE_COLORS) regardless
+                // of theme, so it needs to stay readable against that.
                 <span
                   key={genre.id}
-                  className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full py-1 pl-3 pr-1 text-xs font-medium text-ink"
+                  className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full py-1 pl-3 pr-1 text-xs font-medium text-[#2b271f]"
                   style={{ background: colorByGenreId.get(genre.id) }}
                 >
                   {genre.name}
@@ -126,14 +129,14 @@ export default function GenrePreferenceModal({
             )}
           </div>
           <div className="flex items-center gap-3">
-            <span className="mr-auto text-xs text-gray-500 tabular-nums">
+            <span className="mr-auto text-xs text-ink/60 tabular-nums">
               {selected.size} selected
             </span>
             <button
               type="button"
               onClick={onCancel}
               disabled={isSaving}
-              className="rounded border bg-white px-3 py-2 text-sm disabled:opacity-50"
+              className="rounded border bg-surface px-3 py-2 text-sm disabled:opacity-50"
             >
               Skip for now
             </button>

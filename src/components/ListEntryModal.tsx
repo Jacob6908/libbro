@@ -7,6 +7,7 @@ import "./ListEntryModal.css";
 
 const PROGRESS_STATUSES: ReadingStatus[] = ["reading", "on_hold", "dropped"];
 const RATING_STATUSES: ReadingStatus[] = ["completed", "dropped"];
+const NOTES_MAX_LENGTH = 500;
 
 export default function ListEntryModal({
   entry,
@@ -49,7 +50,9 @@ export default function ListEntryModal({
   );
   const [percent, setPercent] = useState<string>(String(initialPercent));
   const [rating, setRating] = useState<number | null>(entry?.rating ?? null);
-  const [review, setReview] = useState(entry?.review ?? "");
+  const [review, setReview] = useState(
+    (entry?.review ?? "").slice(0, NOTES_MAX_LENGTH)
+  );
 
   const showProgress = PROGRESS_STATUSES.includes(status);
   const showRating = RATING_STATUSES.includes(status);
@@ -102,6 +105,10 @@ export default function ListEntryModal({
     const next = Number(value);
     if (Number.isNaN(next)) return;
     setPercent(String(Math.max(0, Math.min(100, next))));
+  };
+
+  const handleReviewChange = (value: string) => {
+    setReview(value.slice(0, NOTES_MAX_LENGTH));
   };
 
   return (
@@ -268,12 +275,16 @@ export default function ListEntryModal({
             </div>
 
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-xs font-bold uppercase tracking-wide text-ink/60">
-                Notes
+              <span className="flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-wide text-ink/60">
+                <span>Notes</span>
+                <span className="font-semibold normal-case tracking-normal text-ink/45">
+                  {review.length}/{NOTES_MAX_LENGTH}
+                </span>
               </span>
               <textarea
                 value={review}
-                onChange={(event) => setReview(event.target.value)}
+                onChange={(event) => handleReviewChange(event.target.value)}
+                maxLength={NOTES_MAX_LENGTH}
                 rows={3}
                 className="rounded border border-ink/20 bg-surface px-2 py-1"
                 placeholder="Private notes about this book"
